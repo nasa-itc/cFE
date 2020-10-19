@@ -442,6 +442,7 @@ function(process_arch SYSVAR)
       # Generate wrapper file for the requisite cfe_platform_cfg.h file
       generate_config_includefile("${CFE_CORE_TARGET}/inc/cfe_msgids.h" msgids.h ${TGTPLATFORM})
       generate_config_includefile("${CFE_CORE_TARGET}/inc/cfe_platform_cfg.h" platform_cfg.h ${TGTPLATFORM})
+      generate_config_includefile("${CFE_CORE_TARGET}/inc/device_cfg.h" device_cfg.h ${TGTPLATFORM})
       
       # Actual core library is a subdirectory
       add_subdirectory(${MISSION_SOURCE_DIR}/cfe/fsw/cfe-core ${CFE_CORE_TARGET})
