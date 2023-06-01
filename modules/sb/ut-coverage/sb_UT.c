@@ -3515,9 +3515,48 @@ void Test_TransmitMsg_API(void)
     SB_UT_ADD_SUBTEST(Test_TransmitTxn_FindDestinations);
     SB_UT_ADD_SUBTEST(Test_TransmitTxn_PipeHandler);
     SB_UT_ADD_SUBTEST(Test_TransmitTxn_Execute);
+    SB_UT_ADD_SUBTEST(Test_TransmitBufferWithRoute);
 
     SB_UT_ADD_SUBTEST(Test_AllocateMessageBuffer);
     SB_UT_ADD_SUBTEST(Test_ReleaseMessageBuffer);
+}
+
+void Test_TransmitBufferWithRoute(void)
+{
+    /* Test case for:
+     * CFE_Status_t CFE_SB_TransmitBufferWithRoute(CFE_SB_Buffer_t *BufPtr, CFE_MSG_Size_t BufSize, CFE_SB_MsgId_t
+     * RoutingMsgId, bool EnableUpdate, int32 TimeOut);
+     */
+
+    CFE_SB_Buffer_t       *SendPtr;
+    const CFE_SB_Buffer_t *ReceivePtr = NULL;
+    CFE_SB_PipeId_t        PipeId     = CFE_SB_INVALID_PIPE;
+    CFE_SB_MsgId_t         MsgId      = SB_UT_TLM_MID;
+    CFE_SB_MsgId_t         RecvMsgId  = CFE_SB_INVALID_MSG_ID;
+    size_t                 RecvSize;
+
+    static const uint8_t RandomBytes[] = { 0x4a, 0x75, 0x62, 0x34, 0x1d, 0xa5, 0x48, 0x5b, 0xc6, 0xb4, 0x40, 0x3f };
+
+    CFE_UtAssert_SETUP(CFE_SB_CreatePipe(&PipeId, 3, "TestPipe"));
+    CFE_UtAssert_SETUP(CFE_SB_Subscribe(MsgId, PipeId));
+
+    UtAssert_NOT_NULL(SendPtr = CFE_SB_AllocateMessageBuffer(sizeof(SB_UT_Test_Tlm_t)));
+    memcpy(SendPtr, RandomBytes, sizeof(RandomBytes));
+
+    /* Test a successful pass */
+    CFE_UtAssert_SUCCESS(CFE_SB_TransmitBufferWithRoute(SendPtr, sizeof(RandomBytes), MsgId, false, CFE_SB_POLL));
+    CFE_UtAssert_SUCCESS(CFE_SB_ReceiveBufferWithRoute(PipeId, &ReceivePtr, &RecvSize, &RecvMsgId, false, CFE_SB_POLL));
+
+    UtAssert_ADDRESS_EQ(SendPtr, ReceivePtr);
+    UtAssert_EQ(size_t, RecvSize, sizeof(RandomBytes));
+    CFE_UtAssert_MSGID_EQ(RecvMsgId, MsgId);
+
+    /* Test bad input */
+    UtAssert_INT32_EQ(CFE_SB_TransmitBufferWithRoute(NULL, 0, MsgId, false, CFE_SB_POLL), CFE_SB_BAD_ARGUMENT);
+    UtAssert_INT32_EQ(CFE_SB_TransmitBufferWithRoute(SendPtr, sizeof(RandomBytes), MsgId, false, -1000),
+                      CFE_SB_BAD_ARGUMENT);
+
+    CFE_UtAssert_TEARDOWN(CFE_SB_DeletePipe(PipeId));
 }
 
 /*
@@ -4160,6 +4199,89 @@ void UT_CFE_MSG_Verify_CustomHandler(void *UserObj, UT_EntryKey_t FuncKey, const
     *IsAcceptable = (UT_GetStubCount(FuncKey) & 1) == 0;
 }
 
+void Test_ReceiveBufferWithRoute(void)
+{
+    /* Test case for:
+     * CFE_Status_t CFE_SB_ReceiveBufferWithRoute(CFE_SB_Buffer_t **BufPtr, CFE_MSG_Size_t *BufSize, CFE_SB_PipeId_t
+     * RxRoute, bool EnableVerify, int32 TimeOut);
+     */
+
+    CFE_SB_BufferD_t       BufDsc[2];
+    const void            *BufDscP[2];
+    CFE_SB_PipeId_t        PipeId;
+    CFE_SB_PipeD_t        *PipeDscPtr;
+    // CFE_SB_MsgId_t   TestMsgId  = SB_UT_TLM_MID;
+    CFE_SB_MsgId_t         RecvMsgId;
+    size_t                 TestSize;
+    size_t                 RecvSize;
+    const CFE_SB_Buffer_t *RecvBufPtr;
+
+    UT_SetHandlerFunction(UT_KEY(CFE_MSG_VerificationAction), UT_CFE_MSG_Verify_CustomHandler, NULL);
+    CFE_UtAssert_SETUP(CFE_SB_CreatePipe(&PipeId, 3, "TestPipe"));
+    CFE_UtAssert_SETUP(CFE_SB_Subscribe(SB_UT_TLM_MID, PipeId));
+    CFE_UtAssert_SETUP(CFE_SB_Subscribe(SB_UT_CMD_MID, PipeId));
+    PipeDscPtr = CFE_SB_LocatePipeDescByID(PipeId);
+    TestSize   = 5;
+
+    memset(BufDsc, 0, sizeof(BufDsc));
+    BufDscP[0]            = &BufDsc[0];
+    BufDsc[0].ContentSize = TestSize;
+    BufDsc[0].MsgId       = SB_UT_TLM_MID;
+    BufDscP[1]            = &BufDsc[1];
+    BufDsc[1].ContentSize = TestSize + 1;
+    BufDsc[1].MsgId       = SB_UT_CMD_MID;
+    CFE_SB_TrackingListReset(&BufDsc[0].Link);
+    CFE_SB_TrackingListReset(&BufDsc[1].Link);
+
+    /* Bad Input (all subsequent steps skipped) */
+    UtAssert_INT32_EQ(CFE_SB_ReceiveBufferWithRoute(PipeId, NULL, NULL, NULL, false, CFE_SB_POLL), CFE_SB_BAD_ARGUMENT);
+    UtAssert_STUB_COUNT(OS_QueueGet, 0);
+    UtAssert_STUB_COUNT(CFE_MSG_VerificationAction, 0);
+
+    /*
+     * Note for these test cases -
+     * the default stub handlers for OS_QueueGet registers data based on
+     * its OSAL ID rather than the function name key as is typical.
+     */
+
+    /* Nominal - no verify */
+    RecvBufPtr = NULL;
+    RecvMsgId  = CFE_SB_INVALID_MSG_ID;
+    RecvSize   = 0;
+    UT_SetDataBuffer(OS_ObjectIdToInteger(PipeDscPtr->SysQueueId), &BufDscP[0], sizeof(BufDscP[0]), false);
+    UtAssert_INT32_EQ(CFE_SB_ReceiveBufferWithRoute(PipeId, &RecvBufPtr, &RecvSize, &RecvMsgId, false, CFE_SB_POLL),
+                      CFE_SUCCESS);
+    UtAssert_ADDRESS_EQ(RecvBufPtr, &BufDsc[0].Content);
+    UtAssert_EQ(size_t, RecvSize, TestSize);
+    CFE_UtAssert_MSGID_EQ(RecvMsgId, SB_UT_TLM_MID);
+    UtAssert_STUB_COUNT(CFE_MSG_VerificationAction, 0);
+    UtAssert_STUB_COUNT(OS_QueueGet, 1);
+
+    /* With verify - two bufs in queue, fail verify first, then verify success */
+    RecvMsgId = CFE_SB_INVALID_MSG_ID;
+    RecvSize  = 0;
+    UT_SetDataBuffer(OS_ObjectIdToInteger(PipeDscPtr->SysQueueId), BufDscP, sizeof(BufDscP), false);
+    UtAssert_INT32_EQ(CFE_SB_ReceiveBufferWithRoute(PipeId, &RecvBufPtr, &RecvSize, &RecvMsgId, true, CFE_SB_POLL),
+                      CFE_SUCCESS);
+    UtAssert_ADDRESS_EQ(RecvBufPtr, &BufDsc[1].Content);
+    UtAssert_EQ(size_t, RecvSize, TestSize + 1);
+    CFE_UtAssert_MSGID_EQ(RecvMsgId, SB_UT_CMD_MID);
+    UtAssert_STUB_COUNT(CFE_MSG_VerificationAction, 2);
+    UtAssert_STUB_COUNT(OS_QueueGet, 3);
+
+    /* With verify - one buf in queue, fails verify, then empty queue */
+    UT_SetDataBuffer(OS_ObjectIdToInteger(PipeDscPtr->SysQueueId), &BufDscP[1], sizeof(BufDscP[1]), false);
+    UtAssert_INT32_EQ(CFE_SB_ReceiveBufferWithRoute(PipeId, &RecvBufPtr, &RecvSize, &RecvMsgId, true, CFE_SB_POLL),
+                      CFE_SB_NO_MESSAGE);
+    UtAssert_NULL(RecvBufPtr);
+    UtAssert_EQ(size_t, RecvSize, 0);
+    CFE_UtAssert_MSGID_EQ(RecvMsgId, CFE_SB_INVALID_MSG_ID);
+    UtAssert_STUB_COUNT(CFE_MSG_VerificationAction, 3);
+    UtAssert_STUB_COUNT(OS_QueueGet, 5);
+
+    CFE_UtAssert_TEARDOWN(CFE_SB_DeletePipe(PipeId));
+}
+
 /*
 ** Function for calling SB receive message API test functions
 */
@@ -4172,6 +4294,7 @@ void Test_ReceiveBuffer_API(void)
     SB_UT_ADD_SUBTEST(Test_ReceiveBuffer_PipeReadError);
     SB_UT_ADD_SUBTEST(Test_ReceiveBuffer_PendForever);
     SB_UT_ADD_SUBTEST(Test_ReceiveBuffer_InvalidBufferPtr);
+    SB_UT_ADD_SUBTEST(Test_ReceiveBufferWithRoute);
 }
 
 static void SB_UT_PipeIdModifyHandler(void *UserObj, UT_EntryKey_t FuncKey, const UT_StubContext_t *Context)
