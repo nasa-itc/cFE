@@ -1,6 +1,6 @@
 /**
   \page cfeapi cFE Application Programmer's Interface (API) Reference
-  <H4> Executive Services API </H4>
+  \section cfeapi_s1 Executive Services API
   <UL>
     <LI> \ref CFEAPIESEntryExit
     <UL>
@@ -15,7 +15,6 @@
     </UL>
     <LI> \ref CFEAPIESAppBehavior
     <UL>
-      <LI> #CFE_ES_RegisterApp - \copybrief CFE_ES_RegisterApp
       <LI> #CFE_ES_RunLoop - \copybrief CFE_ES_RunLoop
       <LI> #CFE_ES_WaitForStartupSync - \copybrief CFE_ES_WaitForStartupSync
       <LI> #CFE_ES_WaitForSystemState - \copybrief CFE_ES_WaitForSystemState
@@ -26,21 +25,29 @@
     <UL>
       <LI> #CFE_ES_GetResetType - \copybrief CFE_ES_GetResetType
       <LI> #CFE_ES_GetAppID - \copybrief CFE_ES_GetAppID
+      <LI> #CFE_ES_GetTaskID - \copybrief CFE_ES_GetTaskID
       <LI> #CFE_ES_GetAppIDByName - \copybrief CFE_ES_GetAppIDByName
+      <LI> #CFE_ES_GetLibIDByName - \copybrief CFE_ES_GetLibIDByName
       <LI> #CFE_ES_GetAppName - \copybrief CFE_ES_GetAppName
+      <LI> #CFE_ES_GetLibName - \copybrief CFE_ES_GetLibName
       <LI> #CFE_ES_GetAppInfo - \copybrief CFE_ES_GetAppInfo
       <LI> #CFE_ES_GetTaskInfo - \copybrief CFE_ES_GetTaskInfo
+      <LI> #CFE_ES_GetLibInfo - \copybrief CFE_ES_GetLibInfo
+      <LI> #CFE_ES_GetModuleInfo - \copybrief CFE_ES_GetModuleInfo
     </UL>
     <LI> \ref CFEAPIESChildTask
     <UL>
-      <LI> #CFE_ES_RegisterChildTask - \copybrief CFE_ES_RegisterChildTask
       <LI> #CFE_ES_CreateChildTask - \copybrief CFE_ES_CreateChildTask
+      <LI> #CFE_ES_GetTaskIDByName - \copybrief CFE_ES_GetTaskIDByName
+      <LI> #CFE_ES_GetTaskName - \copybrief CFE_ES_GetTaskName
       <LI> #CFE_ES_DeleteChildTask - \copybrief CFE_ES_DeleteChildTask
       <LI> #CFE_ES_ExitChildTask - \copybrief CFE_ES_ExitChildTask
     </UL>
     <LI> \ref CFEAPIESCritData
     <UL>
       <LI> #CFE_ES_RegisterCDS - \copybrief CFE_ES_RegisterCDS
+      <LI> #CFE_ES_GetCDSBlockIDByName - \copybrief CFE_ES_GetCDSBlockIDByName
+      <LI> #CFE_ES_GetCDSBlockName - \copybrief CFE_ES_GetCDSBlockName
       <LI> #CFE_ES_CopyToCDS - \copybrief CFE_ES_CopyToCDS
       <LI> #CFE_ES_RestoreFromCDS - \copybrief CFE_ES_RestoreFromCDS
     </UL>
@@ -49,6 +56,7 @@
       <LI> #CFE_ES_PoolCreate - \copybrief CFE_ES_PoolCreate
       <LI> #CFE_ES_PoolCreateEx - \copybrief CFE_ES_PoolCreateEx
       <LI> #CFE_ES_PoolCreateNoSem - \copybrief CFE_ES_PoolCreateNoSem
+      <LI> #CFE_ES_PoolDelete - \copybrief CFE_ES_PoolDelete
       <LI> #CFE_ES_GetPoolBuf - \copybrief CFE_ES_GetPoolBuf
       <LI> #CFE_ES_PutPoolBuf - \copybrief CFE_ES_PutPoolBuf
       <LI> #CFE_ES_GetMemPoolStats - \copybrief CFE_ES_GetMemPoolStats
@@ -68,21 +76,30 @@
       <LI> #CFE_ES_SetGenCount - \copybrief CFE_ES_SetGenCount
       <LI> #CFE_ES_GetGenCount - \copybrief CFE_ES_GetGenCount
       <LI> #CFE_ES_GetGenCounterIDByName - \copybrief CFE_ES_GetGenCounterIDByName
+      <LI> #CFE_ES_GetGenCounterName - \copybrief CFE_ES_GetGenCounterName
     </UL>
     <LI> \ref CFEAPIESMisc
     <UL>
+      <LI> #CFE_ES_BackgroundWakeup - \copybrief CFE_ES_BackgroundWakeup
       <LI> #CFE_ES_CalculateCRC - \copybrief CFE_ES_CalculateCRC
       <LI> #CFE_ES_WriteToSysLog - \copybrief CFE_ES_WriteToSysLog
       <LI> #CFE_ES_ProcessAsyncEvent - \copybrief CFE_ES_ProcessAsyncEvent
+      <LI> #CFE_ES_StatusToString - \copybrief CFE_ES_StatusToString
+    </UL>
+    <LI> \ref CFEAPIESResourceID
+    <UL>
+      <LI> #CFE_ES_AppID_ToIndex - \copybrief CFE_ES_AppID_ToIndex
+      <LI> #CFE_ES_LibID_ToIndex - \copybrief CFE_ES_LibID_ToIndex
+      <LI> #CFE_ES_TaskID_ToIndex - \copybrief CFE_ES_TaskID_ToIndex
+      <LI> #CFE_ES_CounterID_ToIndex - \copybrief CFE_ES_CounterID_ToIndex
     </UL>
   </UL>
 
-  <H4> Events Services API </H4>
+  \section cfeapi_s2 Events Services API
   <UL>
     <LI> \ref CFEAPIEVSReg
     <UL>
       <LI> #CFE_EVS_Register - \copybrief CFE_EVS_Register
-      <LI> #CFE_EVS_Unregister - \copybrief CFE_EVS_Unregister
     </UL>
     <LI> \ref CFEAPIEVSSend
     <UL>
@@ -97,7 +114,7 @@
     </UL>
   </UL>
 
-  <H4> File Services API </H4>
+  \section cfeapi_s3 File Services API
   <UL>
     <LI> \ref CFEAPIFSHeader
     <UL>
@@ -106,24 +123,94 @@
 	  <LI> #CFE_FS_WriteHeader - \copybrief CFE_FS_WriteHeader
 	  <LI> #CFE_FS_SetTimestamp - \copybrief CFE_FS_SetTimestamp
     </UL>
-    <LI> \ref CFEAPIFSCompress
-    <UL>
-	  <LI> #CFE_FS_IsGzFile - \copybrief CFE_FS_IsGzFile
-	  <LI> #CFE_FS_Decompress - \copybrief CFE_FS_Decompress
-          <LI> #CFE_FS_GetUncompressedFile - \copybrief CFE_FS_GetUncompressedFile
-    </UL>
     <LI> \ref CFEAPIFSUtil
     <UL>
+          <LI> #CFE_FS_GetDefaultMountPoint - \copybrief CFE_FS_GetDefaultMountPoint
+          <LI> #CFE_FS_GetDefaultExtension - \copybrief CFE_FS_GetDefaultExtension
+          <LI> #CFE_FS_ParseInputFileNameEx - \copybrief CFE_FS_ParseInputFileNameEx
+          <LI> #CFE_FS_ParseInputFileName - \copybrief CFE_FS_ParseInputFileName
 	  <LI> #CFE_FS_ExtractFilenameFromPath - \copybrief CFE_FS_ExtractFilenameFromPath
+          <LI> #CFE_FS_BackgroundFileDumpRequest - \copybrief CFE_FS_BackgroundFileDumpRequest
+          <LI> #CFE_FS_BackgroundFileDumpIsPending - \copybrief CFE_FS_BackgroundFileDumpIsPending
     </UL>
   </UL>
 
-  <H4> Software Bus API </H4>
+  \section cfeapi_s4 Message API
+  <UL>
+    <LI> \ref CFEAPIMSGHeader
+    <UL>
+      <LI> #CFE_MSG_Init - \copybrief CFE_MSG_Init
+    </UL>
+    <LI> \ref CFEAPIMSGHeaderPri
+    <UL>
+      <LI> #CFE_MSG_GetSize - \copybrief CFE_MSG_GetSize
+      <LI> #CFE_MSG_SetSize - \copybrief CFE_MSG_SetSize
+      <LI> #CFE_MSG_GetType - \copybrief CFE_MSG_GetType
+      <LI> #CFE_MSG_SetType - \copybrief CFE_MSG_SetType
+      <LI> #CFE_MSG_GetHeaderVersion - \copybrief CFE_MSG_GetHeaderVersion
+      <LI> #CFE_MSG_SetHeaderVersion - \copybrief CFE_MSG_SetHeaderVersion
+      <LI> #CFE_MSG_GetHasSecondaryHeader - \copybrief CFE_MSG_GetHasSecondaryHeader
+      <LI> #CFE_MSG_SetHasSecondaryHeader - \copybrief CFE_MSG_SetHasSecondaryHeader
+      <LI> #CFE_MSG_GetApId - \copybrief CFE_MSG_GetApId
+      <LI> #CFE_MSG_SetApId - \copybrief CFE_MSG_SetApId
+      <LI> #CFE_MSG_GetSegmentationFlag - \copybrief CFE_MSG_GetSegmentationFlag
+      <LI> #CFE_MSG_SetSegmentationFlag - \copybrief CFE_MSG_SetSegmentationFlag
+      <LI> #CFE_MSG_GetSequenceCount - \copybrief CFE_MSG_GetSequenceCount
+      <LI> #CFE_MSG_SetSequenceCount - \copybrief CFE_MSG_SetSequenceCount
+      <LI> #CFE_MSG_GetNextSequenceCount - \copybrief CFE_MSG_GetNextSequenceCount
+    </UL>
+    <LI> \ref CFEAPIMSGHeaderExt
+    <UL>
+      <LI> #CFE_MSG_GetEDSVersion - \copybrief CFE_MSG_GetEDSVersion
+      <LI> #CFE_MSG_SetEDSVersion - \copybrief CFE_MSG_SetEDSVersion
+      <LI> #CFE_MSG_GetEndian - \copybrief CFE_MSG_GetEndian
+      <LI> #CFE_MSG_SetEndian - \copybrief CFE_MSG_SetEndian
+      <LI> #CFE_MSG_GetPlaybackFlag - \copybrief CFE_MSG_GetPlaybackFlag
+      <LI> #CFE_MSG_SetPlaybackFlag - \copybrief CFE_MSG_SetPlaybackFlag
+      <LI> #CFE_MSG_GetSubsystem - \copybrief CFE_MSG_GetSubsystem
+      <LI> #CFE_MSG_SetSubsystem - \copybrief CFE_MSG_SetSubsystem
+      <LI> #CFE_MSG_GetSystem - \copybrief CFE_MSG_GetSystem
+      <LI> #CFE_MSG_SetSystem - \copybrief CFE_MSG_SetSystem
+    </UL>
+    <LI> \ref CFEAPIMSGHeaderSec
+    <UL>
+      <LI> #CFE_MSG_GenerateChecksum - \copybrief CFE_MSG_GenerateChecksum
+      <LI> #CFE_MSG_ValidateChecksum - \copybrief CFE_MSG_ValidateChecksum
+      <LI> #CFE_MSG_SetFcnCode - \copybrief CFE_MSG_SetFcnCode
+      <LI> #CFE_MSG_GetFcnCode - \copybrief CFE_MSG_GetFcnCode
+      <LI> #CFE_MSG_GetMsgTime - \copybrief CFE_MSG_GetMsgTime
+      <LI> #CFE_MSG_SetMsgTime - \copybrief CFE_MSG_SetMsgTime
+    </UL>
+    <LI> \ref CFEAPIMSGMsgId
+    <UL>
+      <LI> #CFE_MSG_GetMsgId - \copybrief CFE_MSG_GetMsgId
+      <LI> #CFE_MSG_SetMsgId - \copybrief CFE_MSG_SetMsgId
+      <LI> #CFE_MSG_GetTypeFromMsgId - \copybrief CFE_MSG_GetTypeFromMsgId
+    </UL>
+  </UL>
+
+  \section cfeapi_s5 Resource ID API
+  <UL>
+    <LI> cFE Resource Misc APIs
+    <UL>
+      <LI> #CFE_ResourceId_ToInteger - \copybrief CFE_ResourceId_ToInteger
+      <LI> #CFE_ResourceId_FromInteger - \copybrief CFE_ResourceId_FromInteger
+      <LI> #CFE_ResourceId_Equal - \copybrief CFE_ResourceId_Equal
+      <LI> #CFE_ResourceId_IsDefined - \copybrief CFE_ResourceId_IsDefined
+      <LI> #CFE_ResourceId_GetBase - \copybrief CFE_ResourceId_GetBase
+      <LI> #CFE_ResourceId_GetSerial - \copybrief CFE_ResourceId_GetSerial
+      <LI> #CFE_ResourceId_FindNext - \copybrief CFE_ResourceId_FindNext
+      <LI> #CFE_ResourceId_ToIndex - \copybrief CFE_ResourceId_ToIndex
+    </UL>
+  </UL>
+
+  \section cfeapi_s6 Software Bus Services API
   <UL>
     <LI> \ref CFEAPISBPipe
     <UL>
       <LI> #CFE_SB_CreatePipe - \copybrief CFE_SB_CreatePipe
       <LI> #CFE_SB_DeletePipe - \copybrief CFE_SB_DeletePipe
+      <LI> #CFE_SB_PipeId_ToIndex - \copybrief CFE_SB_PipeId_ToIndex
       <LI> #CFE_SB_SetPipeOpts - \copybrief CFE_SB_SetPipeOpts
       <LI> #CFE_SB_GetPipeOpts - \copybrief CFE_SB_GetPipeOpts
       <LI> #CFE_SB_GetPipeName - \copybrief CFE_SB_GetPipeName
@@ -139,54 +226,34 @@
     </UL>
     <LI> \ref CFEAPISBMessage
     <UL>
-      <LI> #CFE_SB_SendMsg - \copybrief CFE_SB_SendMsg
-      <LI> #CFE_SB_PassMsg - \copybrief CFE_SB_PassMsg
-      <LI> #CFE_SB_RcvMsg - \copybrief CFE_SB_RcvMsg
+      <LI> #CFE_SB_TransmitMsg - \copybrief CFE_SB_TransmitMsg
+      <LI> #CFE_SB_ReceiveBuffer - \copybrief CFE_SB_ReceiveBuffer
     </UL>
     <LI> \ref CFEAPISBZeroCopy
     <UL>
-      <LI> #CFE_SB_ZeroCopyGetPtr - \copybrief CFE_SB_ZeroCopyGetPtr
-      <LI> #CFE_SB_ZeroCopyReleasePtr - \copybrief CFE_SB_ZeroCopyReleasePtr
-      <LI> #CFE_SB_ZeroCopySend - \copybrief CFE_SB_ZeroCopySend
-      <LI> #CFE_SB_ZeroCopyPass - \copybrief CFE_SB_ZeroCopyPass
+      <LI> #CFE_SB_AllocateMessageBuffer - \copybrief CFE_SB_AllocateMessageBuffer
+      <LI> #CFE_SB_ReleaseMessageBuffer - \copybrief CFE_SB_ReleaseMessageBuffer
+      <LI> #CFE_SB_TransmitBuffer - \copybrief CFE_SB_TransmitBuffer
     </UL>
-    <LI> \ref CFEAPISBSetMessage
+    <LI> \ref CFEAPISBMessageCharacteristics
     <UL>
-      <LI> #CFE_SB_InitMsg - \copybrief CFE_SB_InitMsg
-      <LI> #CFE_SB_SetMsgId - \copybrief CFE_SB_SetMsgId
       <LI> #CFE_SB_SetUserDataLength - \copybrief CFE_SB_SetUserDataLength
-      <LI> #CFE_SB_SetTotalMsgLength - \copybrief CFE_SB_SetTotalMsgLength
-      <LI> #CFE_SB_SetMsgTime - \copybrief CFE_SB_SetMsgTime
       <LI> #CFE_SB_TimeStampMsg - \copybrief CFE_SB_TimeStampMsg
-      <LI> #CFE_SB_SetCmdCode - \copybrief CFE_SB_SetCmdCode
       <LI> #CFE_SB_MessageStringSet - \copybrief CFE_SB_MessageStringSet
-    </UL>
-    <LI> \ref CFEAPIGetMessage
-    <UL>
       <LI> #CFE_SB_GetUserData - \copybrief CFE_SB_GetUserData
-      <LI> #CFE_SB_GetMsgId - \copybrief CFE_SB_GetMsgId
       <LI> #CFE_SB_GetUserDataLength - \copybrief CFE_SB_GetUserDataLength
-      <LI> #CFE_SB_GetTotalMsgLength - \copybrief CFE_SB_GetTotalMsgLength
-      <LI> #CFE_SB_GetMsgTime - \copybrief CFE_SB_GetMsgTime
-      <LI> #CFE_SB_GetCmdCode - \copybrief CFE_SB_GetCmdCode
-      <LI> #CFE_SB_GetLastSenderId - \copybrief CFE_SB_GetLastSenderId
       <LI> #CFE_SB_MessageStringGet - \copybrief CFE_SB_MessageStringGet
-    </UL>
-    <LI> \ref CFEAPISBChecksum
-    <UL>
-      <LI> #CFE_SB_GenerateChecksum - \copybrief CFE_SB_GenerateChecksum
-      <LI> #CFE_SB_GetChecksum - \copybrief CFE_SB_GetChecksum
-      <LI> #CFE_SB_ValidateChecksum - \copybrief CFE_SB_ValidateChecksum
     </UL>
     <LI> \ref CFEAPISBMessageID
     <UL>
+      <LI> #CFE_SB_IsValidMsgId - \copybrief CFE_SB_IsValidMsgId
       <LI> #CFE_SB_MsgId_Equal - \copybrief CFE_SB_MsgId_Equal
       <LI> #CFE_SB_MsgIdToValue - \copybrief CFE_SB_MsgIdToValue
       <LI> #CFE_SB_ValueToMsgId - \copybrief CFE_SB_ValueToMsgId
     </UL>
   </UL>
 
-  <H4> Table Services API </H4>
+  \section cfeapi_s7 Table Services API
   <UL>
     <LI> \ref CFEAPITBLRegistration
     <UL>
@@ -218,7 +285,7 @@
     </UL>
   </UL>
 
-  <H4> Time Services API </H4>
+  \section cfeapi_s8 Time Services API
   <UL>
     <LI> \ref CFEAPITIMEGetCurrent
     <UL>
@@ -247,8 +314,6 @@
       <LI> #CFE_TIME_MET2SCTime - \copybrief CFE_TIME_MET2SCTime
       <LI> #CFE_TIME_Sub2MicroSecs - \copybrief CFE_TIME_Sub2MicroSecs
       <LI> #CFE_TIME_Micro2SubSecs - \copybrief CFE_TIME_Micro2SubSecs
-      <LI> #CFE_TIME_CFE2FSSeconds - \copybrief CFE_TIME_CFE2FSSeconds
-      <LI> #CFE_TIME_FS2CFESeconds - \copybrief CFE_TIME_FS2CFESeconds
     </UL>
     <LI> \ref CFEAPITIMEExternSource
     <UL>

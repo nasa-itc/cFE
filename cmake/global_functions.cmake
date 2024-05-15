@@ -15,7 +15,7 @@ include(CMakeParseArguments)
 # FUNCTION: generate_c_headerfile
 #
 # Generates a C header file in the build directory.
-# First argument is the file name to write.  All remaining arguments will be 
+# First argument is the file name to write.  All remaining arguments will be
 # concatenated and written to the file.
 #
 function(generate_c_headerfile FILE_NAME)
@@ -31,15 +31,15 @@ function(generate_c_headerfile FILE_NAME)
     get_filename_component(FILE_GUARD "${FILE_NAME}" NAME)
     string(REGEX REPLACE "[^A-Za-z0-9]" "_" FILE_GUARD "${FILE_GUARD}")
     string(TOUPPER "GENERATED_INCLUDE_${FILE_GUARD}" FILE_GUARD)
-    set(GENERATED_FILE_HEADER 
+    set(GENERATED_FILE_HEADER
         "/* Generated header file.  Do not edit */\n\n"
         "#ifndef ${FILE_GUARD}\n"
         "#define ${FILE_GUARD}\n\n"
     )
-    set(GENERATED_FILE_TRAILER 
+    set(GENERATED_FILE_TRAILER
         "#endif /* ${FILE_GUARD} */\n"
     )
-  
+
     # Use configure_file() to write the file, as this automatically
     # has the logic to not update the timestamp on the file unless it changes.
     string(REPLACE ";" "" GENERATED_FILE_CONTENT "${ARGN}")
@@ -49,7 +49,7 @@ function(generate_c_headerfile FILE_NAME)
         "${CFE_SOURCE_DIR}/cmake/cfe_generated_file.h.in"
         "${FILE_NAME}"
         @ONLY)
-    
+
 endfunction(generate_c_headerfile)
 
 ##################################################################
@@ -63,8 +63,9 @@ endfunction(generate_c_headerfile)
 #
 # This also supports "stacking" multiple component files together by specifying more than one
 # source file for the wrapper.
-# 
+#
 # This function now accepts named parameters:
+#   OUTPUT_DIRECTORY - non-default directory to write the file to (optional)
 #   FILE_NAME - the name of the file to write
 #   FALLBACK_FILE - if no files are found in "defs" using the name match, this file will be used instead.
 #   MATCH_SUFFIX - the suffix to match in the "defs" directory (optional)
@@ -76,10 +77,10 @@ function(generate_config_includefile)
     if (NOT GENCONFIG_ARG_OUTPUT_DIRECTORY)
         set(GENCONFIG_ARG_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/inc")
     endif (NOT GENCONFIG_ARG_OUTPUT_DIRECTORY)
-    
+
     set(WRAPPER_FILE_CONTENT)
     set(ITEM_FOUND FALSE)
-    
+
     # Assemble a list of file names to test for
     # Check for existence of a file in defs directory with an exact matching name
     # Then Check for existence of file(s) with a matching prefix+suffix
@@ -89,7 +90,7 @@ function(generate_config_includefile)
             list(APPEND CHECK_PATH_LIST "${MISSION_DEFS}/${PREFIX}_${GENCONFIG_ARG_MATCH_SUFFIX}")
         endforeach()
     endif(GENCONFIG_ARG_MATCH_SUFFIX)
-    
+
     # Check for existence of files, and add to content if present
     # Note that all files are appended/concatenated together.
     foreach(SRC_LOCAL_PATH ${CHECK_PATH_LIST})
@@ -103,14 +104,14 @@ function(generate_config_includefile)
     endforeach()
 
     # If _no_ files were found in the above loop,
-    # then check for and use the fallback file. 
+    # then check for and use the fallback file.
     # (if specified by the caller it should always exist)
     # Also produce a message on the console showing whether mission config or fallback was used
     if (ITEM_FOUND)
         message(STATUS "Generated ${GENCONFIG_ARG_FILE_NAME} from ${MISSION_DEFS} configuration")
     elseif (GENCONFIG_ARG_FALLBACK_FILE)
         file(TO_NATIVE_PATH "${GENCONFIG_ARG_FALLBACK_FILE}" SRC_NATIVE_PATH)
-        list(APPEND WRAPPER_FILE_CONTENT 
+        list(APPEND WRAPPER_FILE_CONTENT
             "\n\n/* No configuration for ${GENCONFIG_ARG_FILE_NAME}, using fallback */\n"
             "#include \"${GENCONFIG_ARG_FALLBACK_FILE}\"\n")
         message(STATUS "Using ${GENCONFIG_ARG_FALLBACK_FILE} for ${GENCONFIG_ARG_FILE_NAME}")
@@ -118,10 +119,10 @@ function(generate_config_includefile)
         message("ERROR: No implementation for ${GENCONFIG_ARG_FILE_NAME} found")
         message(FATAL_ERROR "Tested: ${CHECK_PATH_LIST}")
     endif()
-    
+
     # Generate a header file
     generate_c_headerfile("${GENCONFIG_ARG_OUTPUT_DIRECTORY}/${GENCONFIG_ARG_FILE_NAME}" ${WRAPPER_FILE_CONTENT})
-  
+
 endfunction(generate_config_includefile)
 
 
@@ -130,76 +131,113 @@ endfunction(generate_config_includefile)
 # FUNCTION: read_targetconfig
 #
 # Scan the list of targets and organize by target system type.
-# This function sets up the following variables in the global scope:
+#
+# If the historical TGT<x> variables are defined, they are translated to name
+# based list of MISSION_CPUNAMES (from TGT<x>_NAMEs).  The historical settings
+# are then translated to the new cpuname based settings as defined in the
+# sample_defs/targets.cmake and sets them as global scope.
+#
+# This function then sets up the following variables in the global scope:
 #   TGTSYS_LIST: list of CPU architectures used in the build.  Note this
 #       will always contain a "native" target (for tools at least) which 
 #       is forced to be last.
-#   MISSION_APPS: full list of applications specified in the whole mission 
-#   SYSID_<arch>: set for each entry of TGTSYS_LIST, and indicates the
-#       toolchain specified in the target file for that CPU arch.
-#   TGTSYS_<arch>: set to a list of CPU numbers that utilize the same arch 
-#   TGTSYS_<arch>_APPS: set for each entry of TGTSYS_LIST, and indicates the
-#       full set of applications that need to built for that target architecture
-#   TGTSYS_<arch>_DRIVERS: set for each entry of TGTSYS_LIST, and indicates the
-#       full set of device drivers that need to built for that target architecture
+#   MISSION_APPS: list of all applications in this build
+#   MISSION_PSPMODULES: list of all psp modules in this build
+#
+# Additionally for each architecture in TGTSYS_LIST:
+#   TGTSYS_<arch>: list of CPU names that utilize the same architecture
+#   TGTSYS_<arch>_APPS: list of apps for the architecture
+#   TGTSYS_<arch>_STATICAPPS: list of static apps for the architecture
+#   TGTSYS_<arch>_PSPMODULES: list of psp modules for the architecture
 #
 function(read_targetconfig)
 
   set(TGTSYS_LIST)
   set(MISSION_APPS)
   set(MISSION_PSPMODULES)
+
+  # This while loop checks for a sequential set of variables prefixed with TGT<x>_
+  # where <x> is a sequence number starting with 1.  The first "gap" (undefined name)
+  # is treated as the end of list.
+  # This is the historical way of specifying CPU configs.  New/future development should
+  # prefer the name-based specification. This translates the sequential TGT<x> variable
+  # to a name-based variable.
   set(TGTID 0)
   while(1)
     math(EXPR TGTID "${TGTID} + 1")
     if (NOT DEFINED TGT${TGTID}_NAME)
       break()
     endif()
-    if (NOT DEFINED TGT${TGTID}_SYSTEM)
-      set(TGT${TGTID}_SYSTEM "cpu${TGTID}")
-      set(TGT${TGTID}_SYSTEM "${TGT${TGTID}_SYSTEM}" PARENT_SCOPE)
+    set(CPUNAME ${TGT${TGTID}_NAME})
+    # by default if PROCESSORID isn't specified, then use TGTID number.
+    if(NOT DEFINED TGT${TGTID}_PROCESSORID)
+        set(TGT${TGTID}_PROCESSORID ${TGTID})
     endif()
-    if (NOT DEFINED TGT${TGTID}_PLATFORM)
-      set(TGT${TGTID}_PLATFORM "default" "${TGT${TGTID}_NAME}")
-      set(TGT${TGTID}_PLATFORM "${TGT${TGTID}_PLATFORM}" PARENT_SCOPE)
-    endif()
-    
+
+    # Translate the TGT<x> prefix to the CPU name prefix
+    # also propagate the value to parent scope
+    foreach(PROP PROCESSORID
+                 APPLIST
+                 STATIC_APPLIST
+                 STATIC_SYMLIST
+                 PSP_MODULELIST
+                 FILELIST
+                 EMBED_FILELIST
+                 SYSTEM
+                 PLATFORM)
+         set(${CPUNAME}_${PROP} ${TGT${TGTID}_${PROP}})
+         set(${CPUNAME}_${PROP} ${${CPUNAME}_${PROP}} PARENT_SCOPE)
+    endforeach()
+    list(APPEND MISSION_CPUNAMES ${CPUNAME})
+  endwhile()
+
+  foreach(CPUNAME ${MISSION_CPUNAMES})
     if (SIMULATION)
       # if simulation use simulation system architecture for all targets
       set(TOOLCHAIN_NAME "${SIMULATION}")
-    else (SIMULATION)
+    elseif (${CPUNAME}_SYSTEM)
       # get the target system arch identifier string
-      set(TOOLCHAIN_NAME "${TGT${TGTID}_SYSTEM}")
-    endif (SIMULATION)
-    
-    set(BUILD_CONFIG ${TOOLCHAIN_NAME} ${TGT${TGTID}_PLATFORM})
-    
-    # convert to a the string which is safe for a variable name
+      set(TOOLCHAIN_NAME "${${CPUNAME}_SYSTEM}")
+    else()
+      # assume a toolchain name matching the CPU name
+      set(TOOLCHAIN_NAME "${CPUNAME}")
+      set(${CPUNAME}_SYSTEM ${TOOLCHAIN_NAME} PARENT_SCOPE)
+    endif ()
+
+    if (NOT DEFINED ${CPUNAME}_PLATFORM)
+      set(${CPUNAME}_PLATFORM "default" "${CPUNAME}")
+      set(${CPUNAME}_PLATFORM "${${CPUNAME}_PLATFORM}" PARENT_SCOPE)
+    endif()
+
+    set(BUILD_CONFIG ${TOOLCHAIN_NAME} ${${CPUNAME}_PLATFORM})
+
+    # convert to a string which is safe for a variable name
     string(REGEX REPLACE "[^A-Za-z0-9]" "_" SYSVAR "${BUILD_CONFIG}")
 
     # save the unmodified name for future reference
     set(BUILD_CONFIG_${SYSVAR} "${BUILD_CONFIG}" PARENT_SCOPE)
-    
+
     # if the "global" applist is not empty, append to every CPU applist
     if (MISSION_GLOBAL_APPLIST)
-      list(APPEND TGT${TGTID}_APPLIST ${MISSION_GLOBAL_APPLIST})
-      set(TGT${TGTID}_APPLIST ${TGT${TGTID}_APPLIST} PARENT_SCOPE)
+      list(APPEND ${CPUNAME}_APPLIST ${MISSION_GLOBAL_APPLIST})
+      set(${CPUNAME}_APPLIST ${${CPUNAME}_APPLIST} PARENT_SCOPE)
     endif (MISSION_GLOBAL_APPLIST)
 
     if (MISSION_GLOBAL_STATIC_APPLIST)
-      list(APPEND TGT${TGTID}_STATIC_APPLIST ${MISSION_GLOBAL_STATIC_APPLIST})
-      set(TGT${TGTID}_STATIC_APPLIST ${TGT${TGTID}_STATIC_APPLIST} PARENT_SCOPE)
+      list(APPEND ${CPUNAME}_STATIC_APPLIST ${MISSION_GLOBAL_STATIC_APPLIST})
+      set(${CPUNAME}_STATIC_APPLIST ${${CPUNAME}_STATIC_APPLIST} PARENT_SCOPE)
     endif (MISSION_GLOBAL_STATIC_APPLIST)
 
     # Append to global lists
     list(APPEND TGTSYS_LIST "${SYSVAR}")
-    list(APPEND TGTSYS_${SYSVAR} "${TGTID}")
-    list(APPEND TGTSYS_${SYSVAR}_APPS ${TGT${TGTID}_APPLIST})
-    list(APPEND TGTSYS_${SYSVAR}_STATICAPPS ${TGT${TGTID}_STATIC_APPLIST})
-    list(APPEND TGTSYS_${SYSVAR}_PSPMODULES ${TGT${TGTID}_PSP_MODULELIST})
-    list(APPEND MISSION_APPS ${TGT${TGTID}_APPLIST} ${TGT${TGTID}_STATIC_APPLIST})
-    list(APPEND MISSION_PSPMODULES ${TGT${TGTID}_PSP_MODULELIST})
-  
-  endwhile()
+    list(APPEND TGTSYS_${SYSVAR} "${CPUNAME}")
+    list(APPEND TGTSYS_${SYSVAR}_APPS ${${CPUNAME}_APPLIST})
+    list(APPEND TGTSYS_${SYSVAR}_STATICAPPS ${${CPUNAME}_STATIC_APPLIST})
+    list(APPEND TGTSYS_${SYSVAR}_PSPMODULES ${${CPUNAME}_PSP_MODULELIST})
+    list(APPEND MISSION_APPS ${${CPUNAME}_APPLIST} ${${CPUNAME}_STATIC_APPLIST})
+    list(APPEND MISSION_PSPMODULES ${${CPUNAME}_PSP_MODULELIST})
+
+  endforeach()
 
   # Remove duplicate entries in the generated lists
   list(REMOVE_DUPLICATES TGTSYS_LIST)
@@ -214,7 +252,8 @@ function(read_targetconfig)
   set(TGTSYS_LIST ${TGTSYS_LIST} PARENT_SCOPE)
   set(MISSION_APPS ${MISSION_APPS} PARENT_SCOPE)
   set(MISSION_PSPMODULES ${MISSION_PSPMODULES} PARENT_SCOPE)
-  
+  set(MISSION_CPUNAMES ${MISSION_CPUNAMES} PARENT_SCOPE)
+
   foreach(SYSVAR ${TGTSYS_LIST})
     set(TGTSYS_${SYSVAR} ${TGTSYS_${SYSVAR}} PARENT_SCOPE)
     if(TGTSYS_${SYSVAR}_APPS)
@@ -229,42 +268,6 @@ function(read_targetconfig)
       list(REMOVE_DUPLICATES TGTSYS_${SYSVAR}_PSPMODULES)
       set(TGTSYS_${SYSVAR}_PSPMODULES ${TGTSYS_${SYSVAR}_PSPMODULES} PARENT_SCOPE)
     endif(TGTSYS_${SYSVAR}_PSPMODULES)
-  endforeach(SYSVAR IN LISTS TGTSYS_LIST)
-  
+  endforeach(SYSVAR ${TGTSYS_LIST})
+
 endfunction(read_targetconfig)
-
-##################################################################
-#
-# FUNCTION: get_current_cflags
-#
-# Convert the input string, which is a simple text string of compiler flags such
-# as CMAKE_C_FLAGS or CMAKE_CXX_FLAGS, and convert it to a list of individual options
-#
-# In addition, the "-I" options from include_directories() and -D options from 
-# add_definitions() will be added to the output list.  The contents of these will be
-# obtained via the properities of the current source directory. 
-#
-function(get_current_cflags OUTPUT_LIST)
-
-  # Start by converting the supplied string to a list 
-  set(FLAGLIST)
-  foreach (FLGSTR ${ARGN})
-    string(REGEX REPLACE " +" ";" TEMPFLG ${FLGSTR})
-    list(APPEND FLAGLIST ${TEMPFLG})
-  endforeach (FLGSTR ${ARGN})
-  
-  # Append any compile definitions from the directory properties
-  get_directory_property(CURRENT_DEFS COMPILE_DEFINITIONS)
-  foreach(DEF ${CURRENT_DEFS})
-    list(APPEND FLAGLIST "-D${DEF}")
-  endforeach(DEF ${CURRENT_DEFS})
-  
-  # Append any include directories from the directory properties
-  get_directory_property(CURRENT_INCDIRS INCLUDE_DIRECTORIES)
-  foreach(INC ${CURRENT_INCDIRS})
-    list(APPEND FLAGLIST "-I${INC}")
-  endforeach(INC ${CURRENT_INCDIRS})
-
-  set(${OUTPUT_LIST} ${FLAGLIST} PARENT_SCOPE)
-  
-endfunction(get_current_cflags OUTPUT_LIST INPUT_FLAGS)

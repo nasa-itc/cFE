@@ -2,7 +2,6 @@
 # Core Flight Software CMake / GNU make wrapper
 #
 # ABOUT THIS MAKEFILE:
-# This is actually part of the CMake alternative build system.
 # It is a GNU-make wrapper that calls the CMake tools appropriately
 # so that setting up a new build is fast and easy with no need to
 # learn the CMake commands.  It also makes it easier to integrate
@@ -99,7 +98,7 @@ $(FILETGTS):
 	$(MAKE) -C $(O)/$(ARCH) $(@)
 endif
 
-# The "prep" step requires extra options that are specified via enviroment variables.
+# The "prep" step requires extra options that are specified via environment variables.
 # Certain special ones should be passed via cache (-D) options to CMake.
 # These are only needed for the "prep" target but they are computed globally anyway.
 PREP_OPTS :=
@@ -124,7 +123,7 @@ install:
 
 prep $(O)/.prep:
 	mkdir -p "$(O)"
-	(cd "$(O)/$(BUILDDIR)" && cmake $(PREP_OPTS) "$(CURDIR)/cfe")
+	(cd "$(O)" && cmake $(PREP_OPTS) "$(CURDIR)/cfe")
 	echo "$(PREP_OPTS)" > "$(O)/.prep"
 
 clean:
@@ -141,20 +140,17 @@ test:
 lcov:
 	lcov --capture --rc lcov_branch_coverage=1 --directory $(O)/$(ARCH) --output-file $(O)/$(ARCH)/coverage_test.info
 	lcov --rc lcov_branch_coverage=1 --add-tracefile $(O)/$(ARCH)/coverage_base.info --add-tracefile $(O)/$(ARCH)/coverage_test.info --output-file $(O)/$(ARCH)/coverage_total.info
-	genhtml $(O)/$(ARCH)/coverage_total.info --output-directory $(O)/$(ARCH)/lcov
+	genhtml $(O)/$(ARCH)/coverage_total.info --branch-coverage --output-directory $(O)/$(ARCH)/lcov
 	@/bin/echo -e "\n\nCoverage Report Link: file:$(CURDIR)/$(O)/$(ARCH)/lcov/index.html\n"
 
 doc:
 	$(MAKE) --no-print-directory -C "$(O)" mission-doc
-	@/bin/echo -e "\n\nDetail Design: \nfile://$(CURDIR)/$(O)/doc/detaildesign/html/index.html\n"
 
 usersguide:
 	$(MAKE) --no-print-directory -C "$(O)" cfe-usersguide
-	@/bin/echo -e "\n\ncFE Users Guide: \nfile://$(CURDIR)/$(O)/doc/users_guide/html/index.html\n"
 
 osalguide:
-	$(MAKE) --no-print-directory -C "$(O)" osalguide
-	@/bin/echo -e "\n\nOsal Users Guide: \nfile://$(CURDIR)/$(O)/doc/osalguide/html/index.html\n"
+	$(MAKE) --no-print-directory -C "$(O)" osal-apiguide
 
 # Make all the commands that use the build tree depend on a flag file
 # that is used to indicate the prep step has been done.  This way
