@@ -1,4 +1,4 @@
-Summary,Custom field (Requirement ID),Description,Custom field (Requirement Rationale)
+Summary,Requirement ID,Description,Requirement Rationale
 ES: Housekeeping Message,cES1000,"Upon receipt of a Message, the cFE shall generate a housekeeping message that includes the following Executive Services items:
 
 - Number of Registered Applications
@@ -306,17 +306,19 @@ EVS: Suppress Flooding Event Messages - Increment counter,cEVS3220.3,The cFE sha
 EVS: Suppress Flooding Event Messages - Retain Maximum Value,cEVS3220.4,"If the squelched event counters have reached their maximum value of (2^8)-1 the cFE shall retain the maximum value (i.e. do not rollover to zero).",Preventing a counter rollover to zero eliminates the case when a user may think no events have occurred when in fact many events have occurred.
 EVS: Suppress Flooding Event Messages - Event Message,cEVS3220.5,"The cFE shall issue an event message when an application transitions to the squelched state, containing the name of the offending application.","An event message provides an obvious useful diagnostic when event suppression occurs, which is an anomaly which should be dealt with."
 SB: NOOP Event,cSB4000,"Upon receipt of a Command, the cFE shall generate a NO-OP event message.",This command is useful as a general sub-system aliveness test.
-SB: Zero Counters,cSB4001,"Upon receipt of Command the cFE shall set to zero the following counters in housekeeping telemetry:
+SB: Zero Counters,cSB4001,"Upon receipt of a Command, the cFE shall set to zero the following counters in housekeeping telemetry:
 
 - Valid command counter
 - Invalid command counter
 - No subscriptions counter
+- Duplicate subscriptions counter
 - Message send error counter
 - Message receive error counter
+- Queue read or write error counter
 - Create Pipe error counter
 - Subscribe error counter
 - Pipe Overflow error counter
-- MsdID-to-pipe limit error counter",Providing a clear counter command eliminates the need for operators or onboard scripts to keep track of the last value of the counter.
+- MsgId-to-pipe limit error counter",Providing a command to zero the counters eliminates the need for operators or onboard scripts to keep track of the last value of the counter.
 SB: Statistics Message,cSB4002,"Upon receipt of a Command, the cFE shall send an SB Message containing the SB statistics.","Visibility of the SB statistics is essential for FSW diagnostics, testing, and maintenance."
 SB: Save Routing To File,cSB4003,"Upon receipt of a Command, the cFE shall save the SB routing information to the Command specified file.","Visibility of the SB routing information is essential for FSW diagnostics, testing, and maintenance."
 SB: Save Routing To File - Default Filename,cSB4003.1,"If a file is not specified, the cFE shall use the `<PLATFORM_DEFINED>` Filename.",Want to provide a default in the event that a user does not want to specify one.
@@ -328,17 +330,26 @@ SB: Housekeeping Message,cSB4005,"Upon receipt of a Message, the cFE shall gener
 - No subscriptions counter
 - Message send error counter
 - Message receive error counter
-- Pipe overflow error counter
-- MsgId-to-pipe limit error counter",Generate housekeeping message for system awareness and management.
-SB: Save Pipe Info To File,cSB4007,"Upon receipt of a Command, the cFE shall save the Pipe information to the Command specified a file.","This gives detailed information about each pipe such as owner of the pipe, queue depth and send errors which can be used for diagnostics purposes."
+- Queue read or write error counter
+- Create Pipe error counter
+- Subscribe error counter
+- Pipe options error counter
+- Duplicate subscriptions counter
+- Get pipe ID by name error counter
+- Pipe Overflow error counter
+- MsgId-to-pipe limit error counter
+- Memory pool handle
+- Memory in use (bytes)
+- Unmarked memory",Generate housekeeping message for system awareness and management.
+SB: Save Pipe Info To File,cSB4007,"Upon receipt of a Command, the cFE shall save the Pipe information to the Command-specified file.","This gives detailed information about each pipe such as owner of the pipe, queue depth and send errors which can be used for diagnostics purposes."
 SB: Save Pipe Info To File - Default Filename,cSB4007.1,"If a file is not specified, the cFE shall use the `<PLATFORM_DEFINED>` filename.",Want to provide a default in the event that a user does not want to specify one.
-SB: Save Message Map To File,cSB4008,"Upon receipt of a Command, the cFE shall save the message map information to the Command specified a file.","This information provides information pertaining to the internals of the SB (Msg ID, and SB Routing table index) which can be used for diagnostic purposes."
+SB: Save Message Map To File,cSB4008,"Upon receipt of a Command, the cFE shall save the message map information to the Command-specified file.","This provides information pertaining to the internals of the SB (Msg ID, and SB Routing table index) which can be used for diagnostic purposes."
 SB: Save Message Map To File - Default Filename,cSB4008.1,"If a file is not specified, the cFE shall use the `<PLATFORM_DEFINED>` filename.",Want to provide a default in the event that a user does not want to specify one.
 SB: Valid Command Counter,cSB4009,"Upon receipt of a valid Command, the cFE shall increment a valid Command counter.",The ground needs the capability to verify that the command was received and accepted by the cFE.
 SB: Invalid Command Counter,cSB4010,"Upon receipt of an invalid Command, the cFE shall increment the invalid Command counter and generate an event message.",The ground needs an indicator if a command is rejected by the cFE.
 SB: Enable Subscription Reporting,cSB4011,"Upon receipt of a Message, the cFE shall enable generation of a message when a subscription is received.",Subscription reporting intended for use by software bus network class of applications.
 SB: Disable Subscription Reporting,cSB4012,"Upon receipt of a Message, the cFE shall disable generation of a message when a subscription is received.",Subscription reporting intended for use by software bus network class of applications.
-SB: Send Previous Subscriptions,cSB4013,"Upon receipt of a Message, the cFE shall generation messages for current subscriptions.",Subscription reporting intended for use by software bus network class of applications.
+SB: Send Previous Subscriptions,cSB4013,"Upon receipt of a Message, the cFE shall generate messages for current subscriptions.",Subscription reporting intended for use by software bus network class of applications.
 SB: Create Pipe,cSB4301,"Upon receipt of a Request to create a Pipe, the cFE shall create a Pipe with the Request-specified Pipe Depth and the Request-specified name.",Run time creation of Pipes supports the cFE goals of easy Application integration and system reconfiguration.
 SB: Delete Pipe,cSB4302,"Upon receipt of a Request to delete a Pipe, the cFE shall Unsubscribe all messages to the Request-specified Pipe, then remove the Pipe from the Routing Information.",An Application must be capable of freeing its own resources.
 SB: Subscribe To Message,cSB4303,"Upon receipt of a Request to Subscribe to an SB message, the cFE shall establish a route using the Request-specified Message ID, the Request-specified Pipe ID, the Request-specified MsgId-to-Pipe limit and the Request-specified QoS.",Run time subscription supports the cFE goals of easy system integration and run time reconfigurations.
@@ -349,9 +360,9 @@ SB: Send Message - Message ID To Pipe Limit,cSB4305.1,The cFE shall limit the nu
 "
 SB: Send Message - Pipe Overflow,cSB4305.3,"If routing a Message to an Application's Pipe results in a Pipe Overflow, the cFE shall abort the send to that pipe, issue an event, and continue sending to the remaining pipes.",The ground needs to know if a message cannot be routed to its destination. A Pipe Overflow occurs when the SB attempts to write to a Pipe that is completely full of SB messages. The number of messages a Pipe is capable of storing is defined by a platform configuration parameter.
 SB: Send Message - Exceed Message ID To Pipe Limit,cSB4305.4,"If routing a Message to an Application's Pipe would exceed the MsgId-to-Pipe Limit, the cFE shall abort the send to that pipe, issue an event, and continue sending to the remaining pipes.",The ground needs to know if a message cannot be routed to its destination. The MsgId-to-Pipe Limit is exceeded when the SB attempts to write to a Pipe that contains the maximum number of messages of a particular Message Id.
-SB: Send Message - No Subscribers,cSB4305.5,"Upon receipt of a Request to send a Message, if no Application's have Subscribed to the Message, the cFE shall increment the No Subscriber's Counter and send an event that displays the Message ID.","A single counter is enough to notify operators that there are no receivers for a packet that is being sent. The ‘no subscriber’s’ event is completely filtered by default. The ground can unfilter the ‘no subscribers’ event to get more information about the message. It is not considered an error if no Applications have subscribed because of the dynamic environment supported by the cFE. In addition, during initialization of a multi-processor system, this can easily occur.
+SB: Send Message - No Subscribers,cSB4305.5,"Upon receipt of a Request to send a Message, if no Applications have subscribed to the Message, the cFE shall increment the No Subscriber's Counter and send an event that displays the Message ID.","A single counter is enough to notify operators that there are no receivers for a packet that is being sent. The ‘no subscribers’ event is completely filtered by default. The ground can unfilter the ‘no subscribers’ event to get more information about the message. It is not considered an error if no Applications have subscribed because of the dynamic environment supported by the cFE. In addition, during initialization of a multi-processor system, this can easily occur.
 "
-SB: Send Message - Max Size,cSB4305.6,"If the SB Message is greater than the `<MISSION_DEFINED>` maximum message size then the cFE shall not send the message, issue and event message and increment the message send error counter.",The cFE should not make any assumptions about why the message was too big and just not send it.
+SB: Send Message - Max Size,cSB4305.6,"If the SB Message is greater than the `<MISSION_DEFINED>` maximum message size then the cFE shall not send the message, issue an event message and increment the message send error counter.",The cFE should not make any assumptions about why the message was too big and just not send it.
 SB: Receive Message No Timeout,cSB4306,"Upon receipt of a Request to receive a SB Message from a Pipe without a timeout, the cFE shall remove the next SB Message from the Pipe and provide the message to the Application.",Applications need a mechanism to retrieve the SB Message they have subscribed to receive. A receive Request without a suspension timeout provides a non-blocking method of retrieving SB messages. Receives are performed on a Pipe basis not on a SB Message basis. The heritage SB Pipe-based receives have served us well. A message-based receive would add extra complexity without any real benefit.
 SB: Receive Message With Timeout,cSB4307,"Upon receipt of a Request to receive a SB Message from a Pipe with a pending timeout, the cFE shall suspend execution of the Application until a SB Message is present on the Pipe or the timeout has expired.","A receive Request with a suspension timeout provides a blocking method of retrieving SB messages. This is useful for data driven Applications and has been used on all heritage missions with a SB. The timeout is useful for fault recovery for Applications that always expect data to arrive or to allow periodic processing for Applications that are not purely data driven. If a SB Message is queued on the Pipe then the SB Message will be provided to the Application and the Application’s execution will not be suspended. Tasks that process telemetry packets often receive many types of packets from different sources.  There should be a mechanism that allows a task to wait for many different types of messages simultaneously.  Heritage implementations of SB do this by directing the messages into one queue (or several queues, to implement priority levels).
 "
@@ -388,17 +399,17 @@ SB: Zero Copy Get Pointer,cSB4340,"Upon receipt of a Request, the cFE shall prov
 SB: Zero Copy Release Pointer,cSB4341,"Upon receipt of a Request, the cFE shall release the requested zero copy pointer.",Zero copy message passing support for reduced overhead at the cost of additional pointer management.
 SB: Zero Copy Send Message,cSB4342,"Upon receipt of a Request, the cFE shall route the requested zero copy message to all subscribed pipes.",Zero copy message passing support for reduced overhead at the cost of additional pointer management.
 SB: Zero Copy Pass Message,cSB4343,"Upon receipt of a Request, the cFE shall route the requested zero copy message to all subscribed pipes without updating the message sequence counter.",Zero copy message passing support for reduced overhead at the cost of additional pointer management.
-SB: Get Packet Type,cSB4344,"Upon receipt of a Request, the CFE shall provide the message packet type.",Provides abstraction for apps to get the packet type (command or telemetry).
+SB: Get Packet Type,cSB4344,"Upon receipt of a Request, the cFE shall provide the message packet type.",Provides abstraction for apps to get the packet type (command or telemetry).
 SB: Validate Message ID,cSB4345,"Upon receipt of a Request, the cFE shall provide the validation status of the message ID.",Provides abstraction for apps to validate a message ID.
-SB: Set Packet Type,cSB4346,"Upon receipt of a Request, the CFE shall set the message packet type.",Provides abstraction for apps to set the packet type (command or telemetry).
-SB: Get Header Field,cSB4347,"Upon receipt of a Request, the CFE shall provide the requested message header field.",Provides abstraction for apps to get implementation defined header fields.
-SB: Set Header Field,cSB4348,"Upon receipt of a Request, the CFE shall set the requested message header field.",Provides abstraction for apps to set implementation defined header fields.
-SB: Get Sequence Count,cSB4349,"Upon receipt of a Request, the CFE shall provide the message sequence count.",Provides abstraction for apps to get the message sequence count.
-SB: Set Sequence Count,cSB4350,"Upon receipt of a Request, the CFE shall set the message sequence count.",Provides abstraction for apps to set the message sequence count.
-SB: Get Next Sequence Count,cSB4351,"Upon receipt of a Request, the CFE shall provide the next message sequence count.",Provides abstraction for apps to get the next message sequence count value such that rollovers are handled based on the implemented field size.
-SB: Get Type From MsgId,cSB4352,"Upon receipt of a Request, the CFE shall provide the message type associated with the requested message ID.","Provides abstraction for apps to get the message type given only the message ID.  Supports a variety of implementations allowing for efficient message ID use (supports bit, range, table, or other logic)."
+SB: Set Packet Type,cSB4346,"Upon receipt of a Request, the cFE shall set the message packet type.",Provides abstraction for apps to set the packet type (command or telemetry).
+SB: Get Header Field,cSB4347,"Upon receipt of a Request, the cFE shall provide the requested message header field.",Provides abstraction for apps to get implementation defined header fields.
+SB: Set Header Field,cSB4348,"Upon receipt of a Request, the cFE shall set the requested message header field.",Provides abstraction for apps to set implementation defined header fields.
+SB: Get Sequence Count,cSB4349,"Upon receipt of a Request, the cFE shall provide the message sequence count.",Provides abstraction for apps to get the message sequence count.
+SB: Set Sequence Count,cSB4350,"Upon receipt of a Request, the cFE shall set the message sequence count.",Provides abstraction for apps to set the message sequence count.
+SB: Get Next Sequence Count,cSB4351,"Upon receipt of a Request, the cFE shall provide the next message sequence count.",Provides abstraction for apps to get the next message sequence count value such that rollovers are handled based on the implemented field size.
+SB: Get Type From MsgId,cSB4352,"Upon receipt of a Request, the cFE shall provide the message type associated with the requested message ID.","Provides abstraction for apps to get the message type given only the message ID.  Supports a variety of implementations allowing for efficient message ID use (supports bit, range, table, or other logic)."
 SB: Initialize Routing On Power On Reset,cSB4500,Upon a Power-on Reset the cFE shall initialize the Routing Information and clear all error counters.,The cFE must initialize to a known state.
-SB: Initialize Routing On Processor Reset,cSB4501,Upon a Processor Reset the cFE shall initialize the Routing Information and clear all error counters,The cFE must initialize to a known state.
+SB: Initialize Routing On Processor Reset,cSB4501,Upon a Processor Reset the cFE shall initialize the Routing Information and clear all error counters.,The cFE must initialize to a known state.
 TBL: Load Inactive Table From File,cTBL6000,"Upon receipt of Command the cFE shall load an Inactive Table Image with the contents of the Command specified File.","Loading from a file allows for multiple versions of a table to be stored on board and loaded to the active table when appropriate. The file header will identify the Table that the file contents are for."
 TBL: Load Inactive Table From File - Partial Load,cTBL6000.1,"If the Command specified file contains only a portion of the Table, the cFE shall first load an Inactive Table Image with the contents of the Active Table Image and then load the contents of the Command specified File.","A Partial Table load capability is useful when dealing with large Tables.  It helps to ensure that additional parameters are not unintentionally modified, reduces command time required to perform a Table update and is a feature that has been used on previous missions."
 TBL: Load Inactive Table From File - Greater Than Max Size,cTBL6000.2,"If the number of data bytes contained in the file is greater than the maximum size of the table, the load shall be aborted and an event message shall be generated.","This is a sanity check to make sure that the ground generated table load does not include more data than a table can handle."
