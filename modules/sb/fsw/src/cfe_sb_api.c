@@ -1450,6 +1450,55 @@ CFE_Status_t CFE_SB_ReceiveBuffer(CFE_SB_Buffer_t **BufPtr, CFE_SB_PipeId_t Pipe
  * See description in header file for argument/return detail
  *
  *-----------------------------------------------------------------*/
+CFE_Status_t CFE_SB_ReceiveBufferWithRoute(CFE_SB_PipeId_t         PipeId,
+                                           const CFE_SB_Buffer_t **BufPtr,
+                                           CFE_MSG_Size_t         *BufSize,
+                                           CFE_SB_MsgId_t         *RoutingMsgId,
+                                           bool                    IsTermination,
+                                           int32                   TimeOut)
+{
+    CFE_SB_ReceiveTxn_State_t  TxnBuf;
+    CFE_SB_MessageTxn_State_t *Txn;
+
+    Txn = CFE_SB_ReceiveTxn_Init(&TxnBuf, BufPtr);
+
+    if (CFE_SB_MessageTxn_IsOK(Txn))
+    {
+        CFE_SB_MessageTxn_SetTimeout(Txn, TimeOut);
+    }
+
+    if (CFE_SB_MessageTxn_IsOK(Txn))
+    {
+        CFE_SB_ReceiveTxn_SetPipeId(Txn, PipeId);
+        CFE_SB_MessageTxn_SetEndpoint(Txn, IsTermination);
+    }
+
+    if (BufPtr != NULL)
+    {
+        *BufPtr = CFE_SB_ReceiveTxn_Execute(Txn);
+    }
+
+    /* Export the other details if the user asked for them */
+    if (BufSize != NULL)
+    {
+        *BufSize = CFE_SB_MessageTxn_GetContentSize(Txn);
+    }
+    if (RoutingMsgId != NULL)
+    {
+        *RoutingMsgId = CFE_SB_MessageTxn_GetRoutingMsgId(Txn);
+    }
+
+    CFE_SB_MessageTxn_ReportEvents(Txn);
+
+    return CFE_SB_MessageTxn_GetStatus(Txn);
+}
+
+/*----------------------------------------------------------------
+ *
+ * Implemented per public API
+ * See description in header file for argument/return detail
+ *
+ *-----------------------------------------------------------------*/
 CFE_SB_Buffer_t *CFE_SB_AllocateMessageBuffer(size_t MsgSize)
 {
     CFE_ES_AppId_t    AppId;
@@ -1637,6 +1686,46 @@ CFE_Status_t CFE_SB_TransmitMsg(const CFE_MSG_Message_t *MsgPtr, bool IsOriginat
          * accessed in this function anymore
          */
         BufPtr = NULL;
+    }
+
+    /* send an event for each pipe write error that may have occurred */
+    CFE_SB_MessageTxn_ReportEvents(Txn);
+
+    return CFE_SB_MessageTxn_GetStatus(Txn);
+}
+
+/*----------------------------------------------------------------
+ *
+ * Implemented per public API
+ * See description in header file for argument/return detail
+ *
+ *-----------------------------------------------------------------*/
+CFE_Status_t CFE_SB_TransmitBufferWithRoute(CFE_SB_Buffer_t *BufPtr,
+                                            size_t           ContentSize,
+                                            CFE_SB_MsgId_t   RoutingMsgId,
+                                            bool             IsOrigination,
+                                            int32            TimeOut)
+{
+    CFE_SB_TransmitTxn_State_t TxnBuf;
+    CFE_SB_MessageTxn_State_t *Txn;
+
+    Txn = CFE_SB_TransmitTxn_Init(&TxnBuf, BufPtr);
+
+    /*
+     * Sanity Check that the pointers are not NULL
+     */
+    if (CFE_SB_MessageTxn_IsOK(Txn))
+    {
+        /* Save passed-in parameters and execute */
+        CFE_SB_MessageTxn_SetContentSize(Txn, ContentSize);
+        CFE_SB_MessageTxn_SetRoutingMsgId(Txn, RoutingMsgId);
+        CFE_SB_MessageTxn_SetTimeout(Txn, TimeOut);
+        CFE_SB_MessageTxn_SetEndpoint(Txn, IsOrigination);
+    }
+
+    if (CFE_SB_MessageTxn_IsOK(Txn))
+    {
+        CFE_SB_TransmitTxn_Execute(Txn, BufPtr);
     }
 
     /* send an event for each pipe write error that may have occurred */

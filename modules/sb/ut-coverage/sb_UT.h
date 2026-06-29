@@ -1836,6 +1836,21 @@ void Test_TransmitMsg_InvalidMsgId(void);
 
 /*****************************************************************************/
 /**
+** \brief Test response to sending a source-routed message
+**
+** \par Description
+**        This function tests the response to sending a source-routed message
+**
+** \par Assumptions, External Events, and Notes:
+**        None
+**
+** \returns
+**        This function does not return a value.
+******************************************************************************/
+void Test_TransmitBufferWithRoute(void);
+
+/*****************************************************************************/
+/**
 ** \brief Test response to sending a message which has no subscribers
 **
 ** \par Description
