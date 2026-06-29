@@ -4210,7 +4210,6 @@ void Test_ReceiveBufferWithRoute(void)
     const void            *BufDscP[2];
     CFE_SB_PipeId_t        PipeId;
     CFE_SB_PipeD_t        *PipeDscPtr;
-    // CFE_SB_MsgId_t   TestMsgId  = SB_UT_TLM_MID;
     CFE_SB_MsgId_t         RecvMsgId;
     size_t                 TestSize;
     size_t                 RecvSize;
