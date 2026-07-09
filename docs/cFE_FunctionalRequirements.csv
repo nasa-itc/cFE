@@ -203,108 +203,254 @@ FS: Extract Filename From Path,cES1604,Upon receipt of a Request the cFE shall p
 FS: Filename Auto-Complete,cES1605,Upon receipt of a Request the cFE shall auto-complete a filename.,Supports filename abstraction (extensions and mount point) to support portability.
 FS: Background File Dump,cES1606,Upon receipt of a Request cFE shall write the requested file in the background.,Generic background (low priority) file write capability avoids stalling out apps and services with large file writes.
 ES: Maximum Processor Resets,cES1709,"If the cFE Core goes through `<PLATFORM_DEFINED>` Maximum Processor Resets, the cFE shall initiate a Power-On Reset of the cFE.","After a <PLATFORM DEFINED> number of Processor Resets, the cFE will attempt to recover by doing a Power-on Reset."
-EVS: Control Message By Event Type,cEVS3000,"Upon receipt of Command the cFE shall enable/disable, as specified in the Command, the future generation of Event Messages for the Command-specified Event Type.",Filtering by type allows the system to behave differently for different users.
-EVS: Set Event Format Mode,cEVS3001,"Upon receipt of Command, the cFE shall set the Event Format Mode to the command specified value, either Long or Short.",Providing a short format accommodates missions with limited telemetry bandwidth. A long format is desirable because it contains the most information.
-EVS: NOOP Event,cEVS3002,Upon receipt of Command the cFE shall generate a NO-OP event message.,This command is useful as a general sub-system aliveness test.
-EVS: Zero Counters,cEVS3003,"Upon receipt of Command the cFE shall set the following counters to zero in Event Services telemetry:
-
-- Valid Command Counter
-- Invalid Command Counter
-- Event Message Sent Counter
-- Event Message Truncation Counter
-- Unregistered Application Send Counter",This command is a common feature in heritage sub-system software design.
-EVS: Write Application Data File,cEVS3004,"Upon receipt of Command, the cFE shall write the following information to the Command specified cFE EVS Application Data file for each registered Application:
-
-- Application Event Message Sent Counter
-- Application Event Service Enable Status
-- Application Event Type Enable Statuses (one for each Event Type)
-- Application Event IDs (for events to be filtered)
-- Application Binary Filter Masks (one per registered Event ID)
-- Application Binary Filter Counters (one per registered Event ID)","Visibility of Application information is essential for FSW diagnostics, testing and maintenance."
-EVS: Write Application Data File - Default Filename,cEVS3004.1,"If a file is not specified, the cFE shall use the `<PLATFORM_DEFINED>` filename.",Want to provide a default in the event that a user does not want to specify.
-EVS: Valid Command Counter,cEVS3005,"Upon receipt of valid command, the cFE shall increment the valid command counter.",The ground needs the capability to verify that the command was received and accepted by the cFE.  Details of valid commands are documented in the cFE User's Guide.
-EVS: Invalid Command Counter,cEVS3006,"Upon receipt of an invalid command, the cFE shall in increment the invalid command counter.",The ground needs an indicator if a command is rejected by the cFE. Details of what makes a command invalid are documented in the cFE Developer's Guide and the cFE User's Guide.
-EVS: Control Message By Application and Event Type,cEVS3007,"Upon receipt of Command the cFE shall enable/disable, as specified in the Command, the future generation of Event Messages for the Command-specified Application and Event Type.",When diagnosing an Application it's useful to enable its informational and diagnostic Event Messages.
-EVS: Control Message By Application,cEVS3008,"Upon receipt of Command the cFE shall enable/disable, as specified in the Command, the future generation of Event Messages for the Command-specified Application.","During development and integration, it can be useful to turn off an Application's Event Message's without regard of the Event Type."
-EVS: Zero Application Message Sent Count,cEVS3009,"Upon receipt of Command, the cFE shall set the Command-specified Application's Event Message Sent Counter to zero.",Allow operators the ability to reset the count of application events.
-EVS: Zero App Filter Counter By Event ID,cEVS3010,"Upon receipt of Command, the cFE shall set an Application's Binary Filter Counter to zero for the Command-specified Event ID.",Clearing an Application's Filtered Event Message Counter is a convenient method for resetting the filter on the event.
-EVS: Zero App Filter Counters,cEVS3011,"Upon receipt of Command, the cFE shall set all of an Application's Binary Filter Counters to zero.",Having the ability to reset all Application Filtered Event Message Counters is a quick method for resetting all the application's event filters. Note: This command gives operators the ability to reset all exhausted event filters (i.e. send 16 and stop) so that filtered events may be generated once again.
-EVS: Set App Filter Mask By Event ID,cEVS3012,Upon receipt of Command the cFE shall set an Application's Binary Filter Mask to the Command-specified Event Filter for the given Application Event ID.,Allow an operator to tune the system for a particular operational environment.
-EVS: Clear Local Event Log,cEVS3013,"Upon receipt of Command, the cFE shall clear the Local Event Log.",Need to be able to clear the log if the event logging is operating in discard mode.
-EVS: Set Event Logging Mode,cEVS3014,"Upon receipt of Command, the cFE shall set the Event Logging Mode to the Command-specified mode, either overwrite or discard.","While in Overwrite Mode, the oldest logged event will be overwritten by the new event when the Event Log Full Flag is set to true.  While in Discard Mode the new event will be discarded, preserving the contents of the full log. Need the ability to switch between Event Message logging modes."
-EVS: Write Local Event Log To File,cEVS3015,"Upon receipt of Command, the cFE shall write the contents of the Local Event Log to the Command specified file.",Allows for ground view of the log.  Local Event Log is not intended for operation playback.  The main purpose of the Local Event Log is for ground testing.  Ground operators may view the data file for playing back stored events.
-EVS: Write Local Event Log To File - Default Filename,cEVS3015.1,"If a file is not specified, the cFE shall use the `<PLATFORM_DEFINED>` filename.",Want to provide a default in the event that a user does not want to specify one.
-EVS: Write Local Event Log Order,cEVS3016,The cFE shall write each Event Message from the earliest logged message to the most recently logged message.,"Ground operators like to see the progression of events in the order that they occurred.   In a scenario when a time correction has been made, the earliest logged may not necessarily mean the oldest time stamp.  This type of playback may not be desirable for Event Logs of considerable size.  It is worthwhile for cFE users to keep Event Logs relatively small."
-EVS: Control Message Port Routing,cEVS3017,"Upon receipt of Command the cFE shall enable/disable, as specified in the Command, the routing of all future Event Messages to the Command specified Event Message Port.","Event Message Output Ports may not be available or needed; therefore, the ability to configure sending to an Event Message Port is useful."
-EVS: Housekeeping Message,cEVS3018,"Upon receipt of a Message, the cFE shall generate a housekeeping message that includes the following Event Services items:
-
-- Valid Command Counter
-- Invalid Command Counter
-- SB Event Format Mode
-- Event Message Sent Counter
-- Event Message Truncation Counter
-- Unregistered Application Send Counter
-- Event Message Output Port Enable Statuses
-- Local Event Log Full Flag
-- Local Event Log Overflow Counter
-- Logging Mode
-- For each registered Application:
-  o Application Event Message Sent Counter
-  o Application Event Service Enable Status",Generate housekeeping message for system awareness and management.
-EVS: Add Event Filter,cEVS3019,Upon receipt of Command the cFE shall add the specified Event Filter for the specified cFE Application and Event ID.,Want to provide the ability for filters to be added at runtime.  Original implementation did not provide this capability which resulted in modifications to Applications for those events that were not registered (i.e. forgotten).
-EVS: Add Event Filter - Reject Already Filtered ,cEVS3019.1,"If the Event ID is already registered for filtering, the cFE shall reject the command and generate an event message.",Filter is done on a per Event ID basis.
-EVS: Add Event Filter - Application Maximum,cEVS3019.2,If the maximum number of Event IDs have been registered for the specified Application then the cFE shall reject the command and generate an event message.,"In order to scale the cFE, allocations are made for each cFE Application (see cEVS3302)."
-EVS: Delete Event Filter,cEVS3020,Upon receipt of Command the cFE shall delete the specified Event Filter for the specified cFE Application and Event ID.,Want to be able to remove event filtering since the cFE limits the number of filters that can be registered for a given cFE Application (see cEVS3302).
-EVS: Delete Event Filter - Reject Not Registered,cEVS3020.1,If the Event ID is not registered for filtering the cFE shall reject the command and generate an event message.,Notify caller that the Filter was not registered.
-EVS: Register App,cEVS3100,"Upon receipt of Request, the cFE shall register an Application for event service, enabling the Application Event Service Enable Status and storing the following request specified Application data: Application Event IDs (for events to be filtered) Application Binary Filter Masks (one per registered Event ID).",Supports the cFE's dynamic Application model.
-EVS: Register App - Create Filter Counter,cEVS3100.1,"Upon receipt of Request to register an Application for event service, the cFE shall create one Application Binary Filter Counter per registered Event ID.",Supports the cFE's Binary Filtering Algorithm.
-EVS: Register App - Create Sent Message Counter,cEVS3100.2,"Upon receipt of Request to register an Application for event service, the cFE shall create an Application Event Message Sent Counter.",Supports the cFE's dynamic Application model.
-EVS: Register App - Default Event Enable Status,cEVS3100.3,"Upon receipt of Request to register an Application for event service, the cFE shall use the `<PLATFORM_DEFINED>` Application Event Type Enable Statuses for each event.","By default, each platform should have a standard configuration for each event message type (eg. DEBUGs disable.  INFO, ERROR and CRITICAL events DISABLED) that should be applied to all events.  Commands are available to modify the settings."
-EVS: Message Types,cEVS3102,The cFE shall support the following Event Message Types: Debug Informational Error Critical.,Supports cFE event services.
-EVS: Create Message,cEVS3103,"Upon receipt of a Request to send an Event Message, the cFE shall create a Short or Long Event Message, as specified by the Event Format Mode, ONLY if the following cFE conditions are met:
-
-1. The requesting Application's Event Service Enable Status is Enabled.
-2. The requesting Application's registered message filtering algorithm indicates the message should be sent.
-3. The requesting Application's Event Type Enable Status is Enabled for the Event Type of the request-specified Event Message.",Supports cFE event services.
-EVS: Create Message - Unregistered App,cEVS3103.1,If the requesting Application has been determined to be unregistered the cFE shall increment the Unregistered Application Send Counter and send an event message.,Provides ground operators the ability to see when unregistered applications are using event services.
-EVS: Create Message - Data Types,cEVS3103.2,"The cFE shall support the following data types within an applications Request specified Event Data:
-
-- Signed Character
-- Unsigned Character
-- Short Integer
-- Unsigned Short Integer
-- Long Integer
-- Unsigned Long Integer",Not all processors supported under the cFE will allow floating point or real types.
-EVS: Create Message - Increment Filter Counter,cEVS3103.3,"If the request specified Event ID has been registered for binary event filtering, the cFE shall increment the request specified Application's Binary Filter Counter for the request-specified Event ID.",Support binary event filtering algorithm.
-EVS: Create Message - Increment Filter Counter - Retain Maximum Value,cEVS3103.3.1,"If the Binary Filter Counter has reached its maximum `<PLATFORM_DEFINED>` value, the cFE shall retain the maximum value (i.e. do not rollover to zero).",Preventing a counter rollover to zero eliminates the case when a user may think no events have occurred when in fact many events have occurred.
-EVS: Create Message - Long Format,cEVS3103.4,"If the Format Mode is set to Long, the cFE shall generate an Event Message formatted as specified in the cFE User's Guide containing the Spacecraft Time, Processor ID, Application ID, Event ID, Event Type, and the Request-specified Event Data.","To assist with system test and diagnostics it is important to distinguish otherwise identical messages by their sources.  This is especially true in a distributed system with common subsystems. It is the intent of this requirement to allow identical subsystems to be resident in multiple processors within the flight system.  In cases like this, the subsystem identifier, and message identifier may be the same; only the processor identifier would make the messages unique.  A long format is desirable because it contains the most information.  Design Note: It is expected that in the implemented event service, the API only requires the Event ID and Type, and that the underlying utility code fills in the processor ID, and Application ID before the message is sent."
-EVS: Create Message - Long Format - Truncation,cEVS3103.4.1,"If the Event Data is greater than the `<MISSION_DEFINED>` maximum Event Data, the cFE shall truncate the Event Message with a string-termination character and increment the Message Truncation Counter.","It's important to know if data is lost, but it doesn't need to be maintained on a per-Event ID basis, therefore a single counter is used.  A platform-defined length was considered but this prevents application reuse unless a minimum length is specified."
-EVS: Create Message - Short Format,cEVS3103.5,"If the Format Mode is set to Short, the cFE shall generate an Event Message formatted as specified in the cFE User's Guide containing the spacecraft time, Processor ID, Application ID, Event ID, and Event Type.",Providing a short format accommodates missions with limited telemetry bandwidth.
-EVS: Create Message - App ID,cEVS3103.6,The requester shall be able to specify the Application ID to be used in the Event Message.,Need to provide APIs a way to specify an Application ID to ensure the context of the Event is correct.
-EVS: Create Message - Time,cEVS3103.7,The requester shall be able to specify the time to be used in the Event Message.,"This routine should be used in situations where an error condition is detected at one time, but the event message is reported at a later time."
-EVS: Increment App Message Sent Counter,cEVS3104,"For each created Event Message, the cFE shall increment the Application Event Message Sent Counter for the request specified Application.",A counter provides a means for keeping track of how many events an application has sent through the event service. Note: The Application Event Message Sent Counter is incremented once regardless of how many enabled ports the message has been sent through.
-EVS: Increment App Message Sent Counter - Retain Maximum Value,cEVS3104.1,"If the Application Event Message Sent Counter has reached its maximum value of (2^16)-1, the cFE shall retain the maximum value (i.e. do not rollover to zero).",Preventing a counter rollover to zero eliminates the case when a user may think no events have occurred when in fact many events have occurred.
-EVS: Increment Message Sent Counter,cEVS3105,"For each created Event Message, the cFE shall increment the Event Message Sent Counter.",A counter provides a means for keeping track of how many events have been sent through the event service. Note: The Event Message Sent Counter is a count of ALL messages sent through the Event Service regardless of the Application sending the event. The Event Message Sent Counter is incremented once regardless of how many enabled ports the message has been sent through.
-EVS: Increment Message Sent Counter - Retain Maximum Value,cEVS3105.1,"If the Event Message Sent Counter has reached its maximum value of (2^16)-1 the cFE shall retain the maximum value (i.e. do not rollover to zero).",Preventing a counter rollover to zero eliminates the case when a user may think no events have occurred when in fact many events have occurred.
-EVS: Zero App Filter Counter By Event ID,cEVS3106,"Upon receipt of a request, the cFE shall set an Application's Binary Filter Counter to zero for the Application request-specified Event ID.",Clearing an Application's Binary Filter Counter is a convenient method for resetting the filter on the event.
-EVS: Zero App Filter Counters,cEVS3107,"Upon receipt of a request, the cFE shall set all of an Application's Binary Filter Counters to zero for the request-specified Application.",Having the ability to reset all Application Filtered Event Message Counters is a quick method for resetting all the application's event filters.
-EVS: Store Message In Event Log,cEVS3108,"For each created Event Message, the cFE shall store the Event Message in the Local Event Log in the Long Event Message Format.",It's useful to save Event Messages when external communications are unavailable. This may occur during system initialization (especially events generated from other cFE components) and during a communications failure.
-EVS: Store Message In Event Log - Set Full Flag,cEVS3108.1,"If the Local Event Log becomes full, the cFE shall set the Local Event Log Full Flag to true.",Ground operations needs to know the state of the Local Even Log.
-EVS: Store Message In Event Log - Increment Overflow Counter,cEVS3108.2,"If the Local Event Log is full, the cFE shall increment the Local Event Log Overflow counter.",Ground operations needs to know how many Event Messages were discarded or overwritten.
-EVS: Store Message In Event Log - Log Full Behavior,cEVS3108.3,"If the Local Event Log is full, the cFE shall either (1) overwrite the oldest Event Message if the Event Logging Mode is overwrite, or (2) discard the Event Message if the Event Logging Mode is discard.","Overwriting the oldest message is useful for nominal operations because a user doesn't need to periodically clear the Log. If an error occurs when there's no communication, the Local Event Log size must be large enough to retain the Event Messages since communications was lost. Discarding the newest Event Message is useful for trouble shooting a problem. For example, there may be a problem during processor initialization that occurs when there's no communications with the processor interfacing with the User. In this case the original Event Messages are critical to solving the problem so they should be preserved. Note that the Event Logging Mode can be changed via stored commanding."
-EVS: Message Port Routing,cEVS3109,"For each created Event Message, the cFE shall route the Event Message, formatted as an ASCII text string, to each enabled Event Message Output Port.",Debug ports are very useful for FSW development and maintenance.
-EVS: Initialize Format On Power On Reset,cEVS3201,"Upon a Power-on Reset, the cFE shall set SB Event Format Mode to `<PLATFORM_DEFINED>` default mode.","Each mission must determine what format they need, defaulted to LONG."
-EVS: Initialize Full Flag To False On Power On Reset,cEVS3202,"Upon a Power-on Reset, the cFE shall set the Local Event Log Full Flag to false.",Set cFE to default status across Power-on Resets.
-EVS: Initialize Logging Mode On Power On Reset,cEVS3203,"Upon a Power-on Reset, the cFE shall set the Event Logging Mode to `<PLATFORM_DEFINED, overwrite>`.",Set cFE to default status across Power-on Resets.
-EVS: Preserve Event Log Reset Mode On Processor Reset,cEVS3207,"Upon a Processor Reset, the cFE shall preserve the Event Logging Mode configuration parameter.",Try to retain mode across a processor reset. The contents of the Local Event Log will be preserved if the Event Logging Mode is configured to Discard. The contents of the Local Event Log may be overwritten (depending on the size and contents of the log prior to the reset) if the Event Logging Mode is configured to Overwrite.
-EVS: Preserve Log Full State On Processor Reset,cEVS3208,"Upon a Processor Reset, the cFE shall preserve the Local Event Log Full state.",Retain the cFE state across Processor Resets.
-EVS: Preserve Log Overflow Counter On Processor Reset,cEVS3210,"Upon a Processor Reset, the cFE shall preserve the Local Event Log Overflow Counter.",Retain the cFE state across Processor Resets.
-EVS: Suppress Flooding Event Messages,cEVS3220,The cFE shall suppress event messages from an application that exceed a pre-defined rate.,Event message flooding may exhaust critical resources required on the spacecraft
-EVS: Suppress Flooding Event Messages - Allow short bursts,cEVS3220.1,The cFE shall allow limited bursts of event messages from an application exceeding the suppress threshold rate.,"Startup or other events may cause a brief burst of events that exceed the nominal rate, but should still be captured."
-EVS: Suppress Flooding Event Messages - Resume events when not flooding,cEVS3220.2,The cFE shall automatically resume processing event messages from an application which is no longer flooding.,"Flooding may be a transient condition, and resuming nominal operations when this condition goes away would allow continued delivery of useful diagnostic data. This also eases implementation."
-EVS: Suppress Flooding Event Messages - Increment counter,cEVS3220.3,The cFE shall increment the squelched counter for a flooding app when events for that app have been suppressed.,A counter provides a means for keeping track of how many events have been suppressed.  Note this counter is included in the application information telemetry packet.
-EVS: Suppress Flooding Event Messages - Retain Maximum Value,cEVS3220.4,"If the squelched event counters have reached their maximum value of (2^8)-1 the cFE shall retain the maximum value (i.e. do not rollover to zero).",Preventing a counter rollover to zero eliminates the case when a user may think no events have occurred when in fact many events have occurred.
-EVS: Suppress Flooding Event Messages - Event Message,cEVS3220.5,"The cFE shall issue an event message when an application transitions to the squelched state, containing the name of the offending application.","An event message provides an obvious useful diagnostic when event suppression occurs, which is an anomaly which should be dealt with."
+Application Initialization,EVS1000,"When reset, the EVS Application shall initialize the application as follows:",
+,,1) Register a Critical Data Store,* See EVS1001 and EVS1002
+,,2) Clear and initialize the event log,* See EVS2280
+,,3) Set "SB Event Format Mode" to 'LONG',* Default "SB Event Format Mode" is configurable
+,,4) Set "Event Message Output Port Enable States" to 0x0001,* Default "Event Message Output Port Enable States" is configurable
+,,5) Set "Event Logging Mode" to 'DISCARD',* Default "Event Logging Mode" is configurable
+,,6) Set "Event Log Enabled State" to 'TRUE',
+,,"7) Issue an event message stating the EVS Application initialized, including the application version number",
+CDS Restoration Failure,EVS1001,"When registering the CDS, if restoration of the contents fails, the EVS Application shall abort the cFE start up process and write an explanation of the failure to the system log",
+CDS Restoration Success,EVS1002,"When registering the CDS, if restoration of the contents succeeds, the EVS Application shall restore:",
+,,"1) ""Event Logging Mode""",* The contents of the Event Log will be preserved if the Event Logging Mode is configured to Discard. The contents of the Event Log may be overwritten (depending on the size and contents of the log prior to the reset) if the Event Logging Mode is configured to Overwrite.
+,,"2) ""Event Log Full Flag""",
+,,"3) ""Event Log Overflow Counter""",
+Counter Initialization,EVS1010,"When reset, the EVS Application shall set the following counters to 0:",
+,,"1) ""Commands Processed Counter""",
+,,"2) ""Command Error Counter""",
+,,"3) ""Event Messages Sent Counter""",
+,,"4) ""Event Message Truncation Counter""",
+,,"5) ""Unregistered Application Events Sent Counter""",
+Reset Failure,EVS1999,"When the EVS Application fails to initialize properly, the EVS Application shall:",
+,,1) Issue an event message containing the reason for the failure,
+,,"2) Write to the system log that the application failed to initialize, including the return code",
+,,3) Exit the application,
+General Command Verification,EVS2000,When the EVS Application receives a command which:,* "Command requirements" are defined as the EVS2XXX requirements
+,,1) Contain a CCSDS application message identifier corresponding to one of the EVS Application's subscribed messages,
+,,2) Contains a function code which is one of the EVS Application's defined function codes,
+,,3) Contains a packet length consistent with the EVS Application's defined packet structure,
+,,4) Passes any argument validations specified by the command requirements,
+,,5) Passes any additional validations as specified by the command requirements,
+,,the EVS Application shall accept and execute the command,
+Command Acceptance,EVS2001,"When the EVS Application accepts a command, the EVS Application shall:",
+,,1) Increment the "Commands Processed Counter",* Except in the case of EVS2020
+,,2) Issue an informational or debug event message,
+Command Rejection,EVS2002,"If the EVS Application receives a command which fails any of the validation specified by EVS2000, the EVS Application shall:",
+,,1) Increment the "Command Error Counter",
+,,2) Issue an error event message,
+No-Operation Command,EVS2010,"When the EVS Application receives a ""no-operation"" command, the EVS Application shall issue an event which contains the version information for the EVS Application",
+Reset Counter Command,EVS2020,"When the EVS Application receives a ""reset counters"" command, the EVS Application shall set the counter to the values described in EVS1010",
+Enable Messages by Event Type Command,EVS2100,"When the EVS Application receives an ""Enable Messages by Event Type"" command which passes the validations specified by EVS2101, the EVS Application shall enable the future generation of event messages for the command-specified event type(s)",
+Enable Messages by Event Type Command Validation,EVS2101,"When the EVS Application receives an ""Enable Messages by Event Type"" command, if:",
+,,1) The command-specified event type state is neither 'ENABLE' nor 'DISABLE',
+,,2) The command-specified event type(s) is one or more of the valid event type as described in EVS4000.6,
+,,the EVS Application shall reject the command,
+Disable Messages by Event Type Command,EVS2110,"When the EVS Application receives a ""Disable Messages by Event Type"" command which passes the validations specified by EVS2111, the EVS Application shall disable the future generation of event messages for the command-specified event type",
+Disable Messages by Event Type Command Validation,EVS2111,"When the EVS Application receives a ""Disable Message by Event Type"" command, if:",
+,,1) The command-specified event type state is neither 'ENABLE' nor 'DISABLE',
+,,2) The command-specified event type(s) is one or more of the valid event type as described in EVS4000.6,
+,,The EVS Application shall reject the command,
+Set Event Format Mode Command,EVS2120,"When the EVS Application receives a ""Set Event Format Mode"" command which passes the validation specified by EVS2121, the EVS Application shall:",
+,,"1) Transmit event with a packet identifier and message if the command-specified format is 'LONG' or,",
+,,2) Transmit events with a packet identifier if the command-specified format is 'SHORT',
+,,3) Set "SB Event Format Mode" to the command-specified value,
+Set Event Format Mode Command Validation,EVS2121,"When the EVS Application receives a ""Set Event Format Mode"" command, if the command-specified message format is neither 'SHORT' nor 'LONG' the EVS Application shall reject the command",
+Enable Messages by Application and Event Type Command,EVS2130,"When the EVS Application receives an ""Enable Messages by Application and Event Type"" command which passes the validation specified by EVS2131, the EVS Application shall enable the future generation of event messages for the command-specified application and event type",
+Enable Messages by Application and Event Type Command Validation,EVS2131,"When the EVS Application receives an ""Enable Message by Application and Event Type"" command, if:",
+,,1) The command-specified event type state is neither 'ENABLE' nor 'DISABLE',
+,,2) The command-specified event type(s) is one or more of the valid event type as described in EVS4000.6,
+,,3) The command-specified application is not registered with EVS,
+,,4) The command-specified application's identifier is invalid,
+,,the EVS Application shall reject the command,
+Disable Messages by Application and Event Type Command,EVS2140,"When the EVS Application receives a ""Disable Messages by Application and Event Type"" command which passes the validation specified by EVS2141, the EVS Application shall disable the future generation of event messages for the command-specified application and event type",
+Disable Messages by Application and Event Type Command Validation,EVS2141,"When the EVS Application receives a ""Disable Messages by Application and Event Type"" command, if:",
+,,1) The command-specified event type state is neither 'ENABLE' nor 'DISABLE',
+,,2) The command-specified event type(s) is one or more of the valid event type as described in EVS4000.6,
+,,3) The command-specified application is not registered with EVS,
+,,4) The command-specified application's identifier is invalid,
+,,the EVS Application shall reject the command,
+Enable Messages by Application Command,EVS2150,"When the EVS Application receives an ""Enable Messages by Application"" command which passes the validation specific by EVS2151, the EVS Application shall enable the future generation of event messages for the command-specified application",
+Enable Messages by Application Command Validation,EVS2151,"When the EVS Application receives an ""Enable Messages by Application"" command, if:",
+,,1) The command-specified application is not registered with EVS,
+,,2) The command-specified application's identifier is invalid,
+,,the EVS Application shall reject the command,
+Disable Messages by Application Command,EVS2160,"When the EVS Application receives a ""Disable Messages by Application"" command which passes the validation specified by EVS2161, the EVS Application shall disable the future generation of event message for the command-specified application",
+Disable Messages by Application Command Validation,EVS2161,"When the EVS Application receives a ""Disable Messages by Application"" command, if:",
+,,1) The command-specified application is not registered with EVS,
+,,2) The command-specified application's identifier is invalid,
+,,the EVS Application shall reject the command,
+Reset Application Counter Command,EVS2170,"When the EVS Application receives a ""Reset Application Counter"" command which passes the validation specified by EVS2171, the EVS application shall for the command-specified application:",
+,,1) Set the "Application Event Messages Sent Counter" to 0,
+,,2) "Application Event Messages Squelched Counter" to 0,"* This lets events for this application be issued again, rather than squelched"
+Reset Application Counter Command Validation,EVS2171,"When the EVS Application receives a ""Reset Application Counter"" command, if:",
+,,1) The command-specified application is not registered with EVS,
+,,2) The command-specified application's identifier is invalid,
+,,the EVS Application shall reject the command,
+Set Event Filter Command,EVS2180,"When the EVS Application receives a ""Set Event Filter"" command which passes the validation specified by EVS2181, the EVS Application shall set the command-specified application's event filter to the command-specified event filter output mask for the command-specified event identifier",
+Set Event Filter Command Validation,EVS2181,"When the EVS Application receives a ""Set Event Filter"" command, if:",
+,,1) The command-specified application is not registered with EVS,
+,,2) The command-specified application's identifier is invalid,
+,,3) The command-specified event identifier is not registered for event filtering,
+,,4) The command-specified event filter output mask is greater than 0xFF,
+,,the EVS Application shall reject the command,
+Enable Ports Command,EVS2190,"When the EVS Application receives an ""Enable Ports"" command which passes the validation specified in EVS2191, the EVS Application shall set the command-specified event message port(s) to an enabled state",
+Enable Ports Command Validation,EVS2191,"When the EVS Application receives an ""Enable Ports"" command, if:",
+,,1) The command-specified event message port does not match the ports defined in EVS4050,
+,,2) The command-specified event message port(s) is/are 0x00,
+,,3) The command-specified event message port(s) is/are greater than 0x0F,* The reason for using 0x0F is unknown right now (except for ease of use for developers)
+,,the EVS Application shall reject the command,
+Disable Ports Command,EVS2200,"When the EVS Application receives a ""Disable Ports"" command which passes the validation specified in EVS2201, the EVS Application shall set the command-specified event message port to a disabled state",
+Disable Ports Command Validation,EVS2201,"When the EVS Application receives an ""Disable Ports"" command, if:",
+,,1) The command-specified event message port does not match the ports defined in EVS4050,
+,,2) The command-specified event message port(s) is/are 0x00,
+,,3) The command-specified event message port(s) is/are greater than 0x0F,* The reason for using 0x0F is unknown right now (except for ease of developers)
+,,the EVS Application shall reject the command,
+Reset Event Filter Command,EVS2210,"When the EVS Application receives a ""Reset Event Filter"" command which passes the validation specified in EVS2211, the EVS Application shall set the event messages requested counter to 0 for the event filter associated with the command-specified application and command-specified event identifier.",
+Reset Event Filter Command Validation,EVS2211,"When the EVS Application receives a ""Reset Event Filter"" command, if:",
+,,1) The command-specified application is not registered with EVS,
+,,2) The command-specified application's identifier is invalid,
+,,3) The command-specified event identifier is not registered for event filtering,
+,,the EVS Application shall reject the command,
+Reset All Event Filters Command,EVS2220,"When the EVS Application receives a ""Reset All Event Filters"" command which passes the validation specified in EVS2221, the EVS Application shall set every event filter counter to zero for the command-specified application.",
+Reset All Event Filters Command Validation,EVS2221,"When the EVS Application receives a ""Reset All Event Filters"" command, if:",
+,,1) The command-specified application is not registered with EVS,
+,,2) The command-specified application's identifier is invalid,
+,,the EVS Application shall reject the command,
+Add Event Filter Command,EVS2230,"When the EVS Application receives an ""Add Event Filter"" command which passes the validation specified in EVS2231, the EVS Application shall add a command-specified event filter for the command-specified event identifier associated with the command-specified application and set the messages requested counter to 0",
+Add Event Filter Command Validation,EVS2231,"When the EVS Application receives an ""Add Event Filter"" command, if:",
+,,1) Adding the command-specified event filter would create more than 8 event filters,
+,,2) The command-specified application is not registered with EVS,
+,,3) The command-specified application's identifier is invalid,
+,,4) The command-specified event filter output mask is greater than 0xFF,
+,,5) The command-specified event identifier for the command-specified application is already being filtered,
+,,the EVS Application shall reject the command,
+Delete Event Filter Command,EVS2240,"When the EVS Application receives a ""Delete Event Filter"" command which passes the validation specified in EVS2241, the EVS Application shall delete the event filter for the command-specified event identifier associated with the command-specified application",
+Delete Event Filter Command Validation,EVS2241,"When the EVS Application receives a ""Delete Event Filter"" command, if:",
+,,1) The command-specified application is not registered with EVS,
+,,2) The command-specified application's identifier is invalid,
+,,3) The command-specified event identifier is not registered for event filtering,
+,,the EVS Application shall reject the command,
+Write Application Data to File Command,EVS2250,"When the EVS Application receives a ""Write Application Data to File"" command, the EVS Application shall write to the command-specified file name or a default file name if no command-specified file is given, the following:",* Default file name is configurable (must be a valid path or command will be rejecte4)
+,,1) Application ID,
+,,2) "Application Event Services Enable Status",
+,,3) "Application Event Messages Sent Counter",
+,,4) Event Types Active Flag,
+,,5) "Application Event Messages Squelched Counter",
+,,6) Event Filter Data,
+,,"    1) Event identifier",
+,,"    2) Event filter output mask",
+,,"    3) Event filter count",
+,,for all applications registered with the EVS Application,
+Write Event Log Data to File Command,EVS2260,"When the EVS Application receives a ""Write Event Log Data to File"" command, the EVS Application shall write to the command-specified file name or a default file name if no command-specified file name is given, the following:",* Default file name is configurable (must be a valid path or command will be rejecte4)
+,,1) Index of the next entry in the event log,
+,,2) The number of entries in the event log,
+,,3) "Event Log Full Flag",
+,,4) "Event Logging Mode",
+,,5) "Event Log Overflow Counter",
+,,6) Every entry in the event log,
+Set Event Log Mode Command,EVS2270,"When the EVS Application receives a ""Set Event Log Mode"" command which passes the validation specified in EVS2271, the EVS Application shall set ""Event Logging Mode"" to the command-specified event log mode",
+Set Event Log Mode Command Validation,EVS2271,"When the EVS Application receives a ""Set Event Log Mode"" command, if the command-specified event log mode is neither 'OVERWRITE' nor 'DISCARD' the EVS Application shall reject the command",
+Clear Event Log Command,EVS2280,"When the EVS Application receives a ""Clear Event Log"" command, the EVS Application shall set the following:",
+,,1) Reset to the beginning of the event log,
+,,2) Set the number of entries in the event log to 0,
+,,3) "Event Log Full Flag" to 'FALSE',
+,,4) "Event Log Overflow Counter" to 0,
+,,5) Remove all entry information from the event log,
+Housekeeping Telemetry Packet,EVS3000,"When the EVS Application receives a Housekeeping Request, the EVS Application shall generate a timestamped housekeeping telemetry packet containing (minimally):",
+,,1) "Commands Processed Counter",
+,,2) "Command Error Counter",
+,,3) "SB Event Format Mode",
+,,4) "Event Messages Sent Counter",
+,,5) "Event Message Truncation Counter",
+,,6) "Unregistered Application Events Sent Counter",
+,,7) "Event Message Output Port Enable States",
+,,8) "Event Log Full Flag",
+,,9) "Event Logging Mode",
+,,10) "Event Log Overflow Counter",
+,,11) "Event Log State",
+,,12) For each registered application:,
+,,"    1) ""Application Event Messages Sent Counter""",
+,,"    2) ""Application Event Services Enable Status""",
+,,"    3) ""Application Event Messages Squelched Counter""",
+Event Message Generation,EVS4000,When the EVS Application receives a request to generate an event message the EVS Application shall generate an event if:,
+,,1) The requesting application is registered with the EVS Application,
+,,2) The request-specified event identifier and the request-specified event type is not filtered for the requesting application,* See EVS4021 and EVS4022
+,,3) The requesting application isn't flooding the EVS Application with event message generation requests,
+,,4) The requesting application's "Application Event Services Enable Status" is 'ENABLED',
+,,5) The requesting application's event type enabled status is 'ENABLED' for the event type of the request-specified event message,
+,,6) The request-specified event type is one of the following types:,
+,,    1) 'DEBUG',
+,,    2) 'INFORMATIONAL',
+,,    3) 'ERROR',
+,,    4) 'CRITICAL',
+Long Event Message Format,EVS4001,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, if ""SB Event Format Mode"" is 'LONG' then the generated event message should have the following components:",
+,,1) Packet ID,
+,,    1) Name of requesting application,
+,,    2) Request-specified event identifier,
+,,    3) Request-specified event type,
+,,    4) Spacecraft identifier,
+,,    5) Processor identifier,
+,,2) Request-specified message,
+Short Event Message Format,EVS4002,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, if ""SB Event Format Mode"" is 'SHORT' then the generated event message should have the following components:",
+,,1) Packet ID,
+,,    1) Name of requesting application,
+,,    2) Request-specified event identifier,
+,,    3) Request-specified event type,
+,,    4) Spacecraft identifier,
+,,    5) Processor identifier,
+Supported Event Data Types,EVS4003,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, if ""SB Event Format Mode"" is 'LONG', the EVS Application shall accept the following data types in the request-specified event data:",
+,,1) Signed Character,
+,,2) Short Integer,
+,,3) Unsigned Short Integer,
+,,4) Long Integer,
+,,5) Unsigned Long Integer,
+Unregistered Application Event Generation,EVS4004,"When the EVS Application receives a request to generate an event message, if the requesting application has not been registered the EVS Application shall increment the ""Unregistered Application Events Sent Counter"" and send an event message stating that the application is not registered",
+Event Message Truncation,EVS4005,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, if the number of characters in the event data is greater than the 120, the EVS Application shall truncate the event data with a '$' and increment ""Event Message Truncation Counter""",* The number of characters allowed in an event message is configurable
+,,,* The event message truncation character ('$' in this case) is configurable,
+Event Message Generation with a Specific Application Identifier,EVS4006,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, the EVS Application shall set the application identifier in the event data to the request-specified value",
+Event Message Generation with a Specific Time,EVS4007,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, the EVS Application shall set the time in the event data to the request-specified time",
+Application Registration,EVS4010,"When the EVS Application receives an application's request to register, the EVS Application shall:",
+,,1) Verify that the request-specified event filter is a valid event filter type as described in EVS4020,
+,,2) Store the following for each request-specified event filter:,
+,,"    1) Event identifier",
+,,"    2) Output controller",
+,,3) Set "Application Event Services Enable Status" for the registering application to 'TRUE' for the requesting application,
+,,4) Set "Application Event Messages Squelched Counter" to 32000 for the requesting application,* "Application Event Messages Squelched Counter" initial value is configurable
+,,5) Set "Application Event Messages Sent Counter" to 0 for the requesting application,
+,,6) Set the event type states for the registering application to the following:,* See EVS4000.8 for valid event types
+,,"    1) 'CRITICAL' to 'ENABLED'",
+,,"    2) 'ERROR' to 'ENABLED'",
+,,"    3) 'INFORMATIONAL' to 'ENABLED'",
+,,"    4) 'DEBUG' to 'DISABLED'",
+Valid Event Filter,EVS4020,A valid event filter has the following:,
+,,1) Event identifier,
+,,2) Output controller,* Value that determines how often event messages are filtered
+,,3) Messages requested counter,* How many times an event has been requested to be issued with this event ID
+Event Filter Trigger,EVS4021,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, the requesting application's event filter output controller and messages requested counter for the request-provided event identifier shall determine whether the EVS Application shall generate an event message",
+Messages Requested Counter,EVS4022,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, if the request-specified event identifier has been registered with an event filter, the EVS Application shall increment the messages requested counter for the request-specified event identifier",
+Messages Requested Counter Maximum,EVS4023,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, if the request-specified event identifier has been registered with an event filter, the EVS Application shall cap the messages requested counter to 0xFFFF and prevent the counter's rollover",* Maximum messages requested counter value is configurable
+Event Log Entry Order,EVS4030,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, the generated event message shall be logged in chronological order, from oldest event to newest event.",
+Event Log Message Format,EVS4031,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, the EVS Application shall store the generated event message in the event log in the long event message format",
+Event Log Full,EVS4032,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, if the local event log becomes full, the EVS Application shall:",
+,,1) Set "Event Log Full Flag" to 'TRUE',
+,,2) Increment "Event Log Overflow Counter",
+,,"3) Depending on the state of ""Event Logging Mode"", either:",
+,,"    1) the oldest event message logged is overwritten if ""Event Logging Mode"" is 'OVERWRITE' or,",
+,,"    2) the generated event message is not added to the event log if ""Event Logging Mode"" is 'DISCARD'",
+Increment Event Messages Sent Counter,EVS4040,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, the EVS Application shall increment ""Event Messages Sent Counter""",
+Event Messages Sent Counter Maximum,EVS4041,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, the EVS Application shall cap ""Event Messages Sent Counter"" to 0xFFFF and prevent the counter's rollover",
+Increment Application Messages Sent,EVS4042,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, the EVS Application shall increment the event message sent counter for the requesting application",
+Application Messages Sent Maximum,EVS4043,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, the EVS Application shall cap the event message sent counter for the requesting application to 0xFFFF and prevent the counter's rollover",
+Valid Event Output Port,EVS4050,To be implemented,
+Message Port Routing,EVS4051,To be defined,
+Suppress Flooding Event Messages,EVS4060,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, if the number of events requested by the application exceeds 32 events per 15 seconds, the EVS Application shall suppress the application's event messages and issue an event message containing the name of the offending application when an application transitions to the squelched state",* Number of events per time period is configurable
+,,,* Time period in seconds is configurable,
+Limited Bursts of Suppressed Messages,EVS4061,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, the EVS Application shall allow limited bursts of event message from an application exceeding the 32 events per 15 seconds",* Number of event per time period is configurable
+,,,* Time period in seconds is configurable
+Unsuppressing Flooding Event Messages,EVS4062,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, the EVS Application shall automatically resume generating event messages from an application which is no longer flooding",
+Increment Squelch Token,EVS4063,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, the EVS Application shall increment the squelched counter for a flooding application when events for that application have been suppressed",
+Squelch Token Maximum,EVS4064,"When the EVS Application receives a request to generate an event message and that request passes the criteria in EVS4000, the EVS Application shall cap the squelched events counters to 255 and prevent the counters rollover",* Squelched events counter maximum is configurable
 SB: NOOP Event,cSB4000,"Upon receipt of a Command, the cFE shall generate a NO-OP event message.",This command is useful as a general sub-system aliveness test.
 SB: Zero Counters,cSB4001,"Upon receipt of a Command, the cFE shall set to zero the following counters in housekeeping telemetry:
 
